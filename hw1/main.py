@@ -88,9 +88,9 @@ class Aligner():
 
         return (best_dx, best_dy)
 
-    def multiscale_align(self, b, g, r, metric, depth=None):
+    def multiscale_align(self, base_img, img2, img3, metric, depth=None):
         # decide the depth of the pyramid
-        h, w = b.shape[0:2]
+        h, w = base_img.shape[0:2]
         if depth is None:
             depth = 0
             while w > 500:
@@ -99,43 +99,46 @@ class Aligner():
 
         print("Depth: {}".format(depth))
 
-        b_pyramid = get_pyramid(b, depth)
-        g_pyramid = get_pyramid(g, depth)
-        r_pyramid = get_pyramid(r, depth)
+        base_pyramid = get_pyramid(base_img, depth)
+        img2_pyramid = get_pyramid(img2, depth)
+        img3_pyramid = get_pyramid(img3, depth)
 
         # multi scale alignment algorithm
         x_bounds = [(-2, 2) for i in range(depth)] + [(-20, 20)]
         y_bounds = [(-2, 2) for i in range(depth)] + [(-20, 20)]
 
-        g_prev_dx, g_prev_dy = 0, 0
-        r_prev_dx, r_prev_dy = 0, 0
+        prev_dx1, prev_dy1 = 0, 0
+        prev_dx2, prev_dy2 = 0, 0
 
         for i in range(depth, -1, -1):
             x_bound = x_bounds[i]
             y_bound = y_bounds[i]
 
             # because previous dx, dy is 2 times smaller
-            g_prev_dx, g_prev_dy = g_prev_dx * 2, g_prev_dy * 2
-            r_prev_dx, r_prev_dy = r_prev_dx * 2, r_prev_dy * 2
+            prev_dx1, prev_dy1 = prev_dx1 * 2, prev_dy1 * 2
+            prev_dx2, prev_dy2 = prev_dx2 * 2, prev_dy2 * 2
 
-            b_i = b_pyramid[i]
-            g_i = self.shift(g_pyramid[i], g_prev_dx, g_prev_dy)
-            r_i = self.shift(r_pyramid[i], r_prev_dx, r_prev_dy)
+            b_i = base_pyramid[i]
+            img2_i = self.shift(img2_pyramid[i], prev_dx1, prev_dy1)
+            img3_i = self.shift(img3_pyramid[i], prev_dx2, prev_dy2)
 
-            g_dx, g_dy = self.align(b_i, g_i, x_bound, y_bound, metric)
-            r_dx, r_dy = self.align(b_i, r_i, x_bound, y_bound, metric)
+            dx1, dy1 = self.align(b_i, img2_i, x_bound, y_bound, metric)
+            dx2, dy2 = self.align(b_i, img3_i, x_bound, y_bound, metric)
 
-            g_prev_dx += g_dx
-            g_prev_dy += g_dy
+            prev_dx1 += dx1
+            prev_dy1 += dy1
 
-            r_prev_dx += r_dx
-            r_prev_dy += r_dy
+            prev_dx2 += dx2
+            prev_dy2 += dy2
 
-        return (g_prev_dx, g_prev_dy), (r_prev_dx, r_prev_dy)
+        return (prev_dx1, prev_dy1), (prev_dx2, prev_dy2)
 
-    def singlescale_align(self, b, g, r, metric):
-        (g_dx, g_dy), (r_dx, r_dy) = self.multiscale_align(b, g, r, metric, depth=0)
-        return (g_dx, g_dy), (r_dx, r_dy)
+    def singlescale_align(self, base_img, img2, img3, metric):
+        (dx1, dy1), (dx2, dy2) = self.multiscale_align(base_img, img2, img3, metric, depth=0)
+        return (dx1, dy1), (dx2, dy2)
+
+    def my_align(self, base_img, img2, img3):
+        return
 
 def split(img):
     assert isinstance(img, np.ndarray)
@@ -208,8 +211,10 @@ def crop_aligned(img):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("img_path", type=str)
+    parser.add_argument("base_channel", type=str, choices=["b", "g", "r"])
     parser.add_argument("algorithm", type=str, choices=["single", "multiscale", "mine"])
     parser.add_argument("metric", type=str, choices=["ssd", "ncc"])
+    parser.add_argument("result", type=str)
     args = parser.parse_args()
 
     img = cv2.imread(args.img_path).astype(np.uint8)
@@ -224,22 +229,36 @@ def main():
 
     aligner = Aligner()
 
+    base_img = b
+    to_align = [g, r]
+    if args.base_channel == "g":
+        base_img = g
+        to_align = [b, r]
+    elif args.base_channel == "r":
+        base_img = r
+        to_align = [b, g]
+
     if args.algorithm == "single":
-        (g_dx, g_dy), (r_dx, r_dy) = aligner.singlescale_align(b, g, r, args.metric)
+        (dx1, dy1), (dx2, dy2) = aligner.singlescale_align(base_img, to_align[0], to_align[1], args.metric)
     elif args.algorithm == "multiscale":
-        (g_dx, g_dy), (r_dx, r_dy) = aligner.multiscale_align(b, g, r, args.metric)
+        (dx1, dy1), (dx2, dy2) = aligner.multiscale_align(base_img, to_align[0], to_align[1], args.metric)
 
-    g = aligner.shift(g, g_dx, g_dy)
-    r = aligner.shift(r, r_dx, r_dy)
+    img2 = aligner.shift(to_align[0], dx1, dy1)
+    img3 = aligner.shift(to_align[1], dx2, dy2)
 
-    print("g_dx: {}, g_dy: {}".format(g_dx, g_dy))
-    print("r_dx: {}, r_dy: {}".format(r_dx, r_dy))
+    print("dx1: {}, dy1: {}".format(dx1, dy1))
+    print("dx2: {}, dy2: {}".format(dx2, dy2))
 
-    merged = merge(b, g, r)
+    if args.base_channel == "b":
+        merged = merge(base_img, img2, img3)
+    elif args.base_channel == "g":
+        merged = merge(img2, base_img, img3)
+    elif args.base_channel == "r":
+        merged = merge(img2, img3, base_img)
 
     # result = crop_aligned(merged)
 
-    cv2.imwrite("result.jpg", merged)
+    cv2.imwrite(args.result + ".jpg", merged)
 
 
 
