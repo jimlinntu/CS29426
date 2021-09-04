@@ -57,18 +57,24 @@ class Aligner():
 
         return dimg
 
-    def align(self, img1, img2, x_bound, y_bound, metric):
+    def align(self, img1, img2, x_bound, y_bound, metric, center_mask):
         assert img1.shape == img2.shape
         assert isinstance(x_bound, tuple) and x_bound[0] < x_bound[1]
         assert isinstance(y_bound, tuple) and y_bound[0] < y_bound[1]
+        assert isinstance(center_mask, bool)
 
         h, w = img1.shape[0:2]
 
         # the region we want to compute the score
         mask = np.zeros((h, w), dtype=np.bool)
         # only consider the center region for the ssd
-        rstart, rend = math.floor(h*0.1), math.floor(h*0.9)
-        cstart, cend = math.floor(w*0.1), math.floor(w*0.9)
+        if center_mask:
+            rstart, rend = math.floor(h*0.1), math.floor(h*0.9)
+            cstart, cend = math.floor(w*0.1), math.floor(w*0.9)
+        else:
+            rstart, rend = 0, h
+            cstart, cend = 0, w
+
         mask[rstart:rend, cstart:cend] = True
 
         best_score = float("inf")
@@ -88,7 +94,7 @@ class Aligner():
 
         return (best_dx, best_dy)
 
-    def multiscale_align(self, base_img, img2, img3, metric, depth=None):
+    def multiscale_align(self, base_img, img2, img3, metric, center_mask, depth=None):
         # decide the depth of the pyramid
         h, w = base_img.shape[0:2]
         if depth is None:
@@ -122,8 +128,8 @@ class Aligner():
             img2_i = self.shift(img2_pyramid[i], prev_dx1, prev_dy1)
             img3_i = self.shift(img3_pyramid[i], prev_dx2, prev_dy2)
 
-            dx1, dy1 = self.align(b_i, img2_i, x_bound, y_bound, metric)
-            dx2, dy2 = self.align(b_i, img3_i, x_bound, y_bound, metric)
+            dx1, dy1 = self.align(b_i, img2_i, x_bound, y_bound, metric, center_mask)
+            dx2, dy2 = self.align(b_i, img3_i, x_bound, y_bound, metric, center_mask)
 
             prev_dx1 += dx1
             prev_dy1 += dy1
@@ -133,8 +139,8 @@ class Aligner():
 
         return (prev_dx1, prev_dy1), (prev_dx2, prev_dy2)
 
-    def singlescale_align(self, base_img, img2, img3, metric):
-        (dx1, dy1), (dx2, dy2) = self.multiscale_align(base_img, img2, img3, metric, depth=0)
+    def singlescale_align(self, base_img, img2, img3, metric, center_mask):
+        (dx1, dy1), (dx2, dy2) = self.multiscale_align(base_img, img2, img3, metric, center_mask, depth=0)
         return (dx1, dy1), (dx2, dy2)
 
     def my_align(self, base_img, img2, img3):
@@ -214,6 +220,7 @@ def main():
     parser.add_argument("base_channel", type=str, choices=["b", "g", "r"])
     parser.add_argument("algorithm", type=str, choices=["single", "multiscale", "mine"])
     parser.add_argument("metric", type=str, choices=["ssd", "ncc"])
+    parser.add_argument("--center_mask", default=False, action="store_true")
     parser.add_argument("result", type=str)
     args = parser.parse_args()
 
@@ -238,10 +245,13 @@ def main():
         base_img = r
         to_align = [b, g]
 
+    print("Using metric: {}".format(args.metric))
+    print("Using center mask?: {}".format(args.center_mask))
     if args.algorithm == "single":
-        (dx1, dy1), (dx2, dy2) = aligner.singlescale_align(base_img, to_align[0], to_align[1], args.metric)
+        (dx1, dy1), (dx2, dy2) = aligner.singlescale_align(base_img, to_align[0], to_align[1], args.metric, args.center_mask)
     elif args.algorithm == "multiscale":
-        (dx1, dy1), (dx2, dy2) = aligner.multiscale_align(base_img, to_align[0], to_align[1], args.metric)
+        (dx1, dy1), (dx2, dy2) = aligner.multiscale_align(base_img, to_align[0], to_align[1], args.metric, args.center_mask)
+
 
     img2 = aligner.shift(to_align[0], dx1, dy1)
     img3 = aligner.shift(to_align[1], dx2, dy2)
