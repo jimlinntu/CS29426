@@ -5,7 +5,7 @@ import math
 
 from pathlib import Path
 
-DEBUG = True
+DEBUG = False
 DEBUG_FOLDER = Path("./debug")
 if DEBUG:
     DEBUG_FOLDER.mkdir(exist_ok=True)
@@ -44,18 +44,6 @@ class Aligner():
     def shift(self, img, dx, dy):
         shifted = np.roll(img, (dy, dx), (0, 1))
         return shifted
-
-    def img_grad(self, img):
-        blur = cv2.GaussianBlur(img, (5, 5), 0)
-        dimg_dx = cv2.Sobel(blur, cv2.CV_8U, 1, 0)
-        dimg_dy = cv2.Sobel(blur, cv2.CV_8U, 0, 1)
-
-        dimg_dx = dimg_dx.astype(np.int32)
-        dimg_dy = dimg_dy.astype(np.int32)
-
-        dimg = np.clip(np.sqrt(dimg_dx**2 + dimg_dy**2), 0, 255).astype(np.uint8)
-
-        return dimg
 
     def align(self, img1, img2, x_bound, y_bound, metric, center_mask):
         assert img1.shape == img2.shape
@@ -143,8 +131,88 @@ class Aligner():
         (dx1, dy1), (dx2, dy2) = self.multiscale_align(base_img, img2, img3, metric, center_mask, depth=0)
         return (dx1, dy1), (dx2, dy2)
 
-    def my_align(self, base_img, img2, img3):
-        return
+    def img_grad(self, img):
+        blurred = cv2.GaussianBlur(img, (5, 5), 0)
+        dx = cv2.Sobel(blurred, cv2.CV_8UC1, 1, 0)
+        dy = cv2.Sobel(blurred, cv2.CV_8UC1, 0, 1)
+
+        dx = dx.astype(np.int32)
+        dy = dy.astype(np.int32)
+
+        grad_len = np.sqrt(dx ** 2 + dy ** 2)
+        return grad_len
+
+    def my_align(self, img1, img2, x_bound, y_bound):
+        h, w = img1.shape[0:2]
+
+        img1 = self.img_grad(img1)
+        img2 = self.img_grad(img2)
+
+        # the region we want to compute the score
+        mask = np.zeros((h, w), dtype=np.int32)
+        # only consider the center region for the ssd
+        rstart, rend = math.floor(h*0.1), math.floor(h*0.9)
+        cstart, cend = math.floor(w*0.1), math.floor(w*0.9)
+
+        mask[rstart:rend, cstart:cend] = True
+
+        best_score = float("inf")
+        best_dx, best_dy = 0, 0
+        for dx in range(x_bound[0], x_bound[1]+1):
+            for dy in range(y_bound[0], y_bound[1]+1):
+                shifted = self.shift(img2, dx, dy)
+
+                score = self.ssd(img1, shifted, mask)
+                if score < best_score:
+                    best_score = score
+                    best_dx, best_dy = dx, dy
+
+        return (best_dx, best_dy)
+
+    def my_multiscale_align(self, base_img, img2, img3, depth=None):
+        # decide the depth of the pyramid
+        h, w = base_img.shape[0:2]
+        if depth is None:
+            depth = 0
+            while w > 500:
+                depth += 1
+                w = w // 2
+
+        print("Depth: {}".format(depth))
+
+        base_pyramid = get_pyramid(base_img, depth)
+        img2_pyramid = get_pyramid(img2, depth)
+        img3_pyramid = get_pyramid(img3, depth)
+
+        # multi scale alignment algorithm
+        x_bounds = [(-2, 2) for i in range(depth)] + [(-20, 20)]
+        y_bounds = [(-2, 2) for i in range(depth)] + [(-20, 20)]
+
+        prev_dx1, prev_dy1 = 0, 0
+        prev_dx2, prev_dy2 = 0, 0
+
+        for i in range(depth, -1, -1):
+            x_bound = x_bounds[i]
+            y_bound = y_bounds[i]
+
+            # because previous dx, dy is 2 times smaller
+            prev_dx1, prev_dy1 = prev_dx1 * 2, prev_dy1 * 2
+            prev_dx2, prev_dy2 = prev_dx2 * 2, prev_dy2 * 2
+
+            b_i = base_pyramid[i]
+            img2_i = self.shift(img2_pyramid[i], prev_dx1, prev_dy1)
+            img3_i = self.shift(img3_pyramid[i], prev_dx2, prev_dy2)
+
+            dx1, dy1 = self.my_align(b_i, img2_i, x_bound, y_bound)
+            dx2, dy2 = self.my_align(b_i, img3_i, x_bound, y_bound)
+
+            prev_dx1 += dx1
+            prev_dy1 += dy1
+
+            prev_dx2 += dx2
+            prev_dy2 += dy2
+
+        return (prev_dx1, prev_dy1), (prev_dx2, prev_dy2)
 
 def split(img):
     assert isinstance(img, np.ndarray)
@@ -206,13 +274,49 @@ def preprocess_raw_img(img):
     write_debug_img("corner.jpg", corner_mask)
     return img
 
-def crop_aligned(img):
+def color_balance(img, method):
+    '''
+        Balance this img's V channel by histogram equalization
+        # https://stackoverflow.com/questions/15007304/histogram-equalization-not-working-on-color-image-opencv
+    '''
     h, w = img.shape[0:2]
-    rate = 0.02
-    y_low, y_high = int(h * rate), int(h * (1-rate))
-    x_low, x_high = int(w * rate), int(w * (1-rate))
+    if method == "grey_world":
+        mask = np.zeros((h, w), dtype=np.bool)
+        mask[int(0.1*h): int(0.9*h), int(0.1*w):int(0.9*w)] = True
+        crop_img = img[mask]
 
-    return img[y_low: y_high, x_low: x_high]
+        b_mean = np.mean(crop_img[:, 0])
+        g_mean = np.mean(crop_img[:, 1])
+        r_mean = np.mean(crop_img[:, 2])
+
+        gray = (b_mean + g_mean + r_mean) / 3
+
+        b_factor = gray / b_mean
+        g_factor = gray / g_mean
+        r_factor = gray / r_mean
+
+        new_img = img.copy().astype(np.float32)
+
+        new_img[:, :, 0] *= b_factor
+        new_img[:, :, 1] *= g_factor
+        new_img[:, :, 2] *= r_factor
+        new_img = np.clip(new_img, 0, 255).astype(np.uint8)
+        return new_img
+
+
+    ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
+    y = ycrcb[:, :, 0]
+    write_debug_img("v.jpg", y)
+
+    if method == "histeq":
+        y = cv2.equalizeHist(y)
+    elif method == "clahe":
+        clahe = cv2.createCLAHE(clipLimit=3, tileGridSize=(3, 3))
+        y = clahe.apply(y)
+
+    new_hsv = np.concatenate([np.expand_dims(y, axis=2), ycrcb[:, :, 1:3]], axis=2)
+    new_img = cv2.cvtColor(new_hsv, cv2.COLOR_YCrCb2BGR)
+    return new_img
 
 def main():
     parser = argparse.ArgumentParser()
@@ -220,8 +324,9 @@ def main():
     parser.add_argument("base_channel", type=str, choices=["b", "g", "r"])
     parser.add_argument("algorithm", type=str, choices=["single", "multiscale", "mine"])
     parser.add_argument("metric", type=str, choices=["ssd", "ncc"])
-    parser.add_argument("--center_mask", default=False, action="store_true")
+    parser.add_argument("balance", type=str, choices=["none", "histeq", "clahe", "grey_world"])
     parser.add_argument("result", type=str)
+    parser.add_argument("--center_mask", default=False, action="store_true")
     args = parser.parse_args()
 
     img = cv2.imread(args.img_path).astype(np.uint8)
@@ -251,13 +356,19 @@ def main():
         (dx1, dy1), (dx2, dy2) = aligner.singlescale_align(base_img, to_align[0], to_align[1], args.metric, args.center_mask)
     elif args.algorithm == "multiscale":
         (dx1, dy1), (dx2, dy2) = aligner.multiscale_align(base_img, to_align[0], to_align[1], args.metric, args.center_mask)
+    elif args.algorithm == "mine":
+        (dx1, dy1), (dx2, dy2) = aligner.my_multiscale_align(base_img, to_align[0], to_align[1])
 
 
     img2 = aligner.shift(to_align[0], dx1, dy1)
     img3 = aligner.shift(to_align[1], dx2, dy2)
 
-    print("dx1: {}, dy1: {}".format(dx1, dy1))
-    print("dx2: {}, dy2: {}".format(dx2, dy2))
+    if args.base_channel == "b":
+        print("G: (dx, dy) = ({}, {}), R: (dx, dy) = ({}, {})".format(dx1, dy1, dx2, dy2))
+    elif args.base_channel == "g":
+        print("B: (dx, dy) = ({}, {}), R: (dx, dy) = ({}, {})".format(dx1, dy1, dx2, dy2))
+    elif args.base_channel == "r":
+        print("B: (dx, dy) = ({}, {}), G: (dx, dy) = ({}, {})".format(dx1, dy1, dx2, dy2))
 
     if args.base_channel == "b":
         merged = merge(base_img, img2, img3)
@@ -266,11 +377,11 @@ def main():
     elif args.base_channel == "r":
         merged = merge(img2, img3, base_img)
 
-    # result = crop_aligned(merged)
+    if args.balance != "none":
+        print("Using color balance method: {}".format(args.balance))
+        merged = color_balance(merged, args.balance)
 
     cv2.imwrite(args.result + ".jpg", merged)
-
-
 
 if __name__ == "__main__":
     main()
