@@ -326,11 +326,13 @@ def main():
     parser.add_argument("metric", type=str, choices=["ssd", "ncc"])
     parser.add_argument("balance", type=str, choices=["none", "histeq", "clahe", "grey_world"])
     parser.add_argument("result", type=str)
+    parser.add_argument("--no_corner_crop", default=False, action="store_true")
     parser.add_argument("--center_mask", default=False, action="store_true")
     args = parser.parse_args()
 
     img = cv2.imread(args.img_path).astype(np.uint8)
-    img = preprocess_raw_img(img)
+    if not args.no_corner_crop:
+        img = preprocess_raw_img(img)
 
     b, g, r = split(img)
 

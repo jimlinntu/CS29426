@@ -9,11 +9,12 @@ Email: tzu-chuan_lin@berkeley.edu
 Web page link: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj1/cs194-26-abu/tzu-chuan_lin_proj1/index.html>
 
 ## How to Run the code
-Requirements: `pip install -r requirements.txt`
+* Environment creation: `conda create -n proj1 python=3.6`
+* Requirements: `pip install -r requirements.txt`
 
 * Usage:
 ```
-main.py [--center_mask] img_path {b,g,r} {single,multiscale,mine} {ssd,ncc} {none,histeq,clahe,grey_world} result
+python main.py [--center_mask] [--no_corner_crop] img_path {b,g,r} {single,multiscale,mine} {ssd,ncc} {none,histeq,clahe,grey_world} result
 ```
 
 For Example:
