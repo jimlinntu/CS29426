@@ -12,7 +12,7 @@ def normalize_gradient(img):
     return np.clip(img, 0, 255)
 
 def main():
-    img = cv2.imread("./cameraman.png")
+    img = cv2.imread("./src_imgs/cameraman.png")
     h, w = img.shape[0:2]
     gray_img = img[:, :, 0]
     if DEBUG:
