@@ -15,7 +15,9 @@ Name: Tzu-Chuan (Jim) Lin
 |![](./imgs/dimg_mag_vis.png)|![](./imgs/dimg_mag_vis_bin.png)|
 
 
-Notice that when you zoom in, you will find that after thresholding, the noise on the **top right** is removed on both images.
+Notice:
+1. The gradient magnitude = `sqrt((dimg/dx)**2 + (dimg/dy)**2)`
+2. when you zoom in, you will find that after thresholding, the noise on the **top right** is removed on both images.
 
 ### Part 1.2: Derivative of Gaussian (DoG) Filter
 
@@ -52,6 +54,7 @@ Otherwise, the associativity will not hold. (The easy way to think of it is poly
 
 ## Part 2: Fun with Frequencies!
 
+### Part 2.1: Image "Sharpening"
 
 * I use: `(1+alpha)e - alpha G` to compute the Laplacian of Gaussian
 
@@ -78,3 +81,35 @@ Observations:
 1. `alpha = 1` and `alpha = 3` are still a little blurry.
 2. `alpha = 5` almost contains no blurry parts. But the lines in the images become thicker due to the sharpening effect.
 3. As `alpha` becomes greater, the image becomes brighter.
+
+### Part 2.2: Hybrid Images
+
+
+* Derek + cat Nutmeg
+
+|Blurred Derek|High frequency Nutmeg|hybrid|
+|---|---|---|
+|<img src="./imgs/DerekPicture-crop_G1.jpg" width="500px"/>|<img src="./imgs/nutmeg-crop_G2.jpg" width="500px"/>|<img src="./imgs/DerekPicture-crop_nutmeg-crop_hybrid.jpg" width="500px"/>|
+
+
+* [Parrot](https://unsplash.com/photos/MSnnSHNfcZ0) + [Owl](https://unsplash.com/photos/oqYHtXrLXLo)
+
+|Blurred Parrot|High frequency Owl|hybrid|
+|---|---|---|
+|<img src="./imgs/parrot-align_G1.jpg" width="500px"/>|<img src="./imgs/owl-align_G2.jpg" width="500px"/>|<img src="./imgs/parrot-align_owl-align_hybrid.jpg" width="500px"/>|
+
+
+* [Nike running shoes](https://www.nike.com/t/air-max-2021-mens-shoes-8F4Sk5/DA1925-002) + [Adidas running shoes](https://www.adidas.com/us/forum-low-shoes/GY2648.html)
+
+|Nike|Adidas|
+|---|---|
+|<img src="./imgs/nike-align.jpeg" width="300px"/>|<img src="./imgs/adidas-align.jpeg" width="300px"/>|
+
+|Nike frequency magnitude|Adidas frequency magnitude|
+|---|---|
+|<img src="./imgs/nike-align_amp1.jpg" width="300px"/>|<img src="./imgs/adidas-align_amp2.jpg" width="300px"/>|
+
+
+|Blurred Nike|High frequency Adidas|hybrid|
+|---|---|---|
+|<img src="./imgs/nike-align_G1.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid.jpg" width="500px"/>|
