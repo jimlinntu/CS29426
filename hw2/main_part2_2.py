@@ -1,13 +1,11 @@
 import numpy as np
 import cv2
-from align_image_code import align_images, match_img_size
-
-# import matplotlib.pyplot as plt
+from align_image_code import match_img_size
 
 import argparse
 from pathlib import Path
 
-DEBUG = True
+DEBUG = False
 
 def freq_amplitude(img):
     log_amplitude = np.log(np.abs(np.fft.fftshift(np.fft.fft2(img))) + 1) # avoid log(0) problem

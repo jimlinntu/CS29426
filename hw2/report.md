@@ -86,33 +86,51 @@ Observations:
 
 * Derek + cat Nutmeg
 
-|Blurred Derek|High frequency Nutmeg|hybrid|
-|---|---|---|
-|<img src="./imgs/DerekPicture-crop_G1.jpg" width="500px"/>|<img src="./imgs/nutmeg-crop_G2.jpg" width="500px"/>|<img src="./imgs/DerekPicture-crop_nutmeg-crop_hybrid.jpg" width="500px"/>|
+|Derek|Nutmeg|
+|---|---|
+|<img src="./imgs/part2_2/DerekPicture-crop.jpg" width="500px"/>|<img src="./imgs/part2_2/nutmeg-crop.jpg" width="500px"/>|
+
+|Derek frequency magnitude|Nutmeg frequency magnitude|
+|---|---|
+|<img src="./imgs/part2_2/DerekPicture-crop_amp1.jpg" width="500px"/>|<img src="./imgs/part2_2/nutmeg-crop_amp2.jpg" width="500px"/>|
+
+||Blurred Derek|High frequency Nutmeg|hybrid|
+|---|---|---|---|
+|Spatial Domain|<img src="./imgs/part2_2/DerekPicture-crop_G1.jpg" width="500px"/>|<img src="./imgs/part2_2/nutmeg-crop_G2.jpg" width="500px"/>|<img src="./imgs/part2_2/DerekPicture-crop_nutmeg-crop_hybrid.jpg" width="500px"/>|
+|Frequency Domain|<img src="./imgs/part2_2/DerekPicture-crop_G1_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/nutmeg-crop_G2_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/DerekPicture-crop_nutmeg-crop_hybrid_amp.jpg" width="500px"/>|
 
 
 * [Parrot](https://unsplash.com/photos/MSnnSHNfcZ0) + [Owl](https://unsplash.com/photos/oqYHtXrLXLo)
 
-|Blurred Parrot|High frequency Owl|hybrid|
-|---|---|---|
-|<img src="./imgs/parrot-align_G1.jpg" width="500px"/>|<img src="./imgs/owl-align_G2.jpg" width="500px"/>|<img src="./imgs/parrot-align_owl-align_hybrid.jpg" width="500px"/>|
+|Parrot|Owl|
+|---|---|
+|<img src="./imgs/part2_2/parrot-align.jpg" width="500px"/>|<img src="./imgs/part2_2/owl-align.jpg" width="500px"/>|
+
+|Parrot frequency magnitude|Owl frequency magnitude|
+|---|---|
+|<img src="./imgs/part2_2/parrot-align_amp1.jpg" width="500px"/>|<img src="./imgs/part2_2/owl-align_amp2.jpg" width="500px"/>|
+
+||Blurred Parrot|High frequency Owl|hybrid|
+|---|---|---|---|
+|Spatial Domain|<img src="./imgs/part2_2/parrot-align_G1.jpg" width="500px"/>|<img src="./imgs/part2_2/owl-align_G2.jpg" width="500px"/>|<img src="./imgs/part2_2/parrot-align_owl-align_hybrid.jpg" width="500px"/>|
+|Frequency Domain|<img src="./imgs/part2_2/parrot-align_G1_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/owl-align_G2_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/parrot-align_owl-align_hybrid_amp.jpg" width="500px"/>|
 
 
 * [Nike running shoes](https://www.nike.com/t/air-max-2021-mens-shoes-8F4Sk5/DA1925-002) + [Adidas running shoes](https://www.adidas.com/us/forum-low-shoes/GY2648.html)
 
 |Nike|Adidas|
 |---|---|
-|<img src="./imgs/nike-align.jpeg" width="300px"/>|<img src="./imgs/adidas-align.jpeg" width="300px"/>|
+|<img src="./imgs/part2_2/nike-align.jpeg" width="300px"/>|<img src="./imgs/part2_2/adidas-align.jpeg" width="300px"/>|
 
 |Nike frequency magnitude|Adidas frequency magnitude|
 |---|---|
-|<img src="./imgs/nike-align_amp1.jpg" width="300px"/>|<img src="./imgs/adidas-align_amp2.jpg" width="300px"/>|
+|<img src="./imgs/part2_2/nike-align_amp1.jpg" width="300px"/>|<img src="./imgs/part2_2/adidas-align_amp2.jpg" width="300px"/>|
 
 
 ||Blurred Nike|High frequency Adidas|hybrid|
 |---|---|---|---|
-|Spatial domain|<img src="./imgs/nike-align_G1.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid.jpg" width="500px"/>|
-|Frequency domain|<img src="./imgs/nike-align_G1_amp.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2_amp.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid_amp.jpg" width="500px"/>|
+|Spatial domain|<img src="./imgs/part2_2/nike-align_G1.jpg" width="500px"/>|<img src="./imgs/part2_2/adidas-align_G2.jpg" width="500px"/>|<img src="./imgs/part2_2/nike-align_adidas-align_hybrid.jpg" width="500px"/>|
+|Frequency domain|<img src="./imgs/part2_2/nike-align_G1_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/adidas-align_G2_amp.jpg" width="500px"/>|<img src="./imgs/part2_2/nike-align_adidas-align_hybrid_amp.jpg" width="500px"/>|
 
 Observations:
 
