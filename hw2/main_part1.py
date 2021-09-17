@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from scipy import signal
 
-DEBUG = True
+DEBUG = False
 
 def normalize_gradient(img):
     # gradient is in [-255, 255]
@@ -76,7 +76,8 @@ def main():
     dg_2d_dx = signal.convolve2d(g_2d, cv2.flip(Dx, 1), mode="full")
     dg_2d_dy = signal.convolve2d(g_2d, cv2.flip(Dy, 1), mode="full")
 
-    print(dg_2d_dx)
+    if DEBUG:
+        print(dg_2d_dx)
     # This will be different!!
     # vvvvvvvvvvvvvvvvvvvvvvv
     # print(signal.convolve2d(g_2d, cv2.flip(Dx, 1), mode="same"))
@@ -85,14 +86,15 @@ def main():
 
     dblur_dy_DoG = cv2.filter2D(gray_img.astype(np.float32), cv2.CV_32F, cv2.flip(dg_2d_dy, 1))
 
-    print(dblur_dx[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
-    # This will be different!!
-    # vvvvvvvvvvvvvvvvvvvvvvv
-    # print(cv2.filter2D(gray_img.astype(np.float32), cv2.CV_32F, cv2.flip(signal.convolve2d(g_2d, cv2.flip(Dx, 1), mode="same"), 1))[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
-    print(dblur_dx_DoG[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
-    print("Is dblur_dx and dblur_dx_DoG similar? {}".format(np.allclose(dblur_dx[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)],
-                dblur_dx_DoG[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)], atol=1.e-3)))
-    print("Is dblur_dy and dblur_dy_DoG similar? {}".format(np.allclose(dblur_dy[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)],
+    if DEBUG:
+        print(dblur_dx[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
+        # This will be different!!
+        # vvvvvvvvvvvvvvvvvvvvvvv
+        # print(cv2.filter2D(gray_img.astype(np.float32), cv2.CV_32F, cv2.flip(signal.convolve2d(g_2d, cv2.flip(Dx, 1), mode="same"), 1))[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
+        print(dblur_dx_DoG[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)])
+        print("Is dblur_dx and dblur_dx_DoG similar? {}".format(np.allclose(dblur_dx[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)],
+                    dblur_dx_DoG[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)], atol=1.e-3)))
+        print("Is dblur_dy and dblur_dy_DoG similar? {}".format(np.allclose(dblur_dy[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)],
                 dblur_dy_DoG[int(0.1*h):int(0.8*h),int(0.1*w):int(0.8*w)], atol=1.e-3)))
 
     dblur_dx_DoG = normalize_gradient(dblur_dx_DoG)
