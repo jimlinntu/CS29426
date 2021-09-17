@@ -1,9 +1,12 @@
 # Fun with Filters and Frequencies!
 
 Name: Tzu-Chuan (Jim) Lin
+
 SID: 3036360742
+
 Email: tzu-chuan_lin@berkeley.edu
-Link: 
+
+Link: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj2/cs194-26-abu/tzu-chuan_lin_proj2/>
 
 ## Part 1 - Fun with Filters
 
