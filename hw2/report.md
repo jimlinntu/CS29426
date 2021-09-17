@@ -194,6 +194,10 @@ And the Orapple:
 |---|---|---|
 |<img src="./imgs/part2_34/car-crop.jpeg" width="300px"/>|<img src="./imgs/part2_34/Jim-crop.jpeg" width="300px"/>|<img src="./imgs/part2_34/car-crop_Jim-crop_out.jpg" width="300px"/>|
 
+The intermediate result:
+
+<img src="./imgs/part2_34/car-crop_Jim-crop_process.jpg" width="800px"/>
+
 * [Parrot](https://unsplash.com/photos/oxpqlSGDNxc) + [Alpaca](https://unsplash.com/photos/Hc9G7owDs1s)
 
 |Parrot|Alpaca|
