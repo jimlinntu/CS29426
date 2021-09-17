@@ -145,19 +145,19 @@ Observations:
 
 |Orange|Gaussian stacks|Laplacian stacks|
 |---|---|---|
-|`depth = 0`|<img src="./imgs/part2/orange_0.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_0.jpg" width="500px"/>|
-|`depth = 1`|<img src="./imgs/part2/orange_1.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_1.jpg" width="500px"/>|
-|`depth = 2`|<img src="./imgs/part2/orange_2.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_2.jpg" width="500px"/>|
-|`depth = 3`|<img src="./imgs/part2/orange_3.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_3.jpg" width="500px"/>|
-|`depth = 4`|<img src="./imgs/part2/orange_4.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_4.jpg" width="500px"/>|
+|`depth = 0`|<img src="./imgs/part2_34/orange_0.jpg" width="500px"/>|<img src="./imgs/part2_34/orange_lp_0.jpg" width="500px"/>|
+|`depth = 1`|<img src="./imgs/part2_34/orange_1.jpg" width="500px"/>|<img src="./imgs/part2_34/orange_lp_1.jpg" width="500px"/>|
+|`depth = 2`|<img src="./imgs/part2_34/orange_2.jpg" width="500px"/>|<img src="./imgs/part2_34/orange_lp_2.jpg" width="500px"/>|
+|`depth = 3`|<img src="./imgs/part2_34/orange_3.jpg" width="500px"/>|<img src="./imgs/part2_34/orange_lp_3.jpg" width="500px"/>|
+|`depth = 4`|<img src="./imgs/part2_34/orange_4.jpg" width="500px"/>|<img src="./imgs/part2_34/orange_lp_4.jpg" width="500px"/>|
 
 |Apple|Gaussian stacks|Laplacian stacks|
 |---|---|---|
-|`depth = 0`|<img src="./imgs/part2/apple_0.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_0.jpg" width="500px"/>|
-|`depth = 1`|<img src="./imgs/part2/apple_1.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_1.jpg" width="500px"/>|
-|`depth = 2`|<img src="./imgs/part2/apple_2.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_2.jpg" width="500px"/>|
-|`depth = 3`|<img src="./imgs/part2/apple_3.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_3.jpg" width="500px"/>|
-|`depth = 4`|<img src="./imgs/part2/apple_4.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_4.jpg" width="500px"/>|
+|`depth = 0`|<img src="./imgs/part2_34/apple_0.jpg" width="500px"/>|<img src="./imgs/part2_34/apple_lp_0.jpg" width="500px"/>|
+|`depth = 1`|<img src="./imgs/part2_34/apple_1.jpg" width="500px"/>|<img src="./imgs/part2_34/apple_lp_1.jpg" width="500px"/>|
+|`depth = 2`|<img src="./imgs/part2_34/apple_2.jpg" width="500px"/>|<img src="./imgs/part2_34/apple_lp_2.jpg" width="500px"/>|
+|`depth = 3`|<img src="./imgs/part2_34/apple_3.jpg" width="500px"/>|<img src="./imgs/part2_34/apple_lp_3.jpg" width="500px"/>|
+|`depth = 4`|<img src="./imgs/part2_34/apple_4.jpg" width="500px"/>|<img src="./imgs/part2_34/apple_lp_4.jpg" width="500px"/>|
 
 **NOTE**: The last level of Laplacian is the same as the Gaussian's last one. But I apply normalization. That is why they look different to each other.
 
@@ -181,32 +181,32 @@ for i in range(n):
 
 The intermediate result (similar to Figure 3.42)
 
-<img src="./imgs/part2/apple_orange_process.jpg" width="700px"/>
+<img src="./imgs/part2_34/apple_orange_process.jpg" width="700px"/>
 
 And the Orapple:
 
 
-<img src="./imgs/part2/apple_orange_out.jpg" width="300px"/>
+<img src="./imgs/part2_34/apple_orange_out.jpg" width="300px"/>
 
 * [Car](https://unsplash.com/photos/_CiyeM2kvqs) + Me
 
 |Car|Me|Merged|
 |---|---|---|
-|<img src="./imgs/part2/car-crop.jpeg" width="300px"/>|<img src="./imgs/part2/Jim-crop.jpeg" width="300px"/>|<img src="./imgs/part2/car-crop_Jim-crop_out.jpg" width="300px"/>|
+|<img src="./imgs/part2_34/car-crop.jpeg" width="300px"/>|<img src="./imgs/part2_34/Jim-crop.jpeg" width="300px"/>|<img src="./imgs/part2_34/car-crop_Jim-crop_out.jpg" width="300px"/>|
 
 * [Parrot](https://unsplash.com/photos/oxpqlSGDNxc) + [Alpaca](https://unsplash.com/photos/Hc9G7owDs1s)
 
 |Parrot|Alpaca|
 |:---:|:---:|
-|<img src="./imgs/part2/parrot-front-crop.jpeg" width="300px"/>|<img src="./imgs/part2/aplaca.jpeg" width="300px"/>|
+|<img src="./imgs/part2_34/parrot-front-crop.jpeg" width="300px"/>|<img src="./imgs/part2_34/aplaca.jpeg" width="300px"/>|
 
 |Mask|Direct Paste|Merged|
 |---|---|---|
-|<img src="./imgs/part2/mask.jpeg" width="300px"/>|<img src="./imgs/part2/parrat-aplaca-direct.jpg" width="300px"/>|<img src="./imgs/part2/parrot-front-crop_aplaca_out.jpg" width="300px"/>|
+|<img src="./imgs/part2_34/mask.jpeg" width="300px"/>|<img src="./imgs/part2_34/parrat-aplaca-direct.jpg" width="300px"/>|<img src="./imgs/part2_34/parrot-front-crop_aplaca_out.jpg" width="300px"/>|
 
 The intermediate result:
 
-<img src="./imgs/part2/parrot-front-crop_aplaca_process.jpg" width="1200px"/>
+<img src="./imgs/part2_34/parrot-front-crop_aplaca_process.jpg" width="1200px"/>
 
 Conclusion:
 * Choosing two objects to merge is super hard!

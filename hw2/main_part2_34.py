@@ -6,12 +6,9 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-from skimage import io
-
 from pathlib import Path
 
-out_dir = Path("./out")
-out_dir.mkdir(exist_ok=True)
+DEBUG = False
 
 def get2d_gaussian(ksize, sigma):
     g1d = cv2.getGaussianKernel(ksize, sigma)
@@ -69,10 +66,13 @@ def main():
     parser.add_argument("mask_ksize", type=int)
     parser.add_argument("left_ksize", type=int)
     parser.add_argument("right_ksize", type=int)
+    parser.add_argument("out_dir", type=str)
 
     parser.add_argument("--mask_path", type=str, default=None, help="User provided mask")
 
     args = parser.parse_args()
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(exist_ok=True)
 
     left_path_stem = Path(args.left).stem
     right_path_stem = Path(args.right).stem
@@ -187,7 +187,8 @@ def main():
 
     fig.savefig(str(out_dir / f"{left_path_stem}_{right_path_stem}_process.jpg"))
 
-    print("out: max: {}, min: {}".format(np.max(out), np.min(out)))
+    if DEBUG:
+        print("out: max: {}, min: {}".format(np.max(out), np.min(out)))
     out = np.clip(out, 0, 255)
     cv2.imwrite(str(out_dir / f"{left_path_stem}_{right_path_stem}_out.jpg"), out)
 
