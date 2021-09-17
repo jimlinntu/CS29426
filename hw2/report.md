@@ -59,7 +59,7 @@ Otherwise, the associativity will not hold. (The easy way to think of it is by p
 
 ||Original| `alpha = 1`| `alpha = 2`| `alpha = 3`|
 |---|---|---|---|---|
-|`taj.jpg`| ![](./imgs/taj.jpg) |![](./imgs/taj_alpha1.jpg)| ![](./imgs/taj_alpha2.jpg) | ![](./imgs/taj_alpha3.jpg)|
+|`taj.jpg`| ![](./imgs/part2_1/taj.jpg) |![](./imgs/part2_1/taj_alpha1.jpg)| ![](./imgs/part2_1/taj_alpha2.jpg) | ![](./imgs/part2_1/taj_alpha3.jpg)|
 
 
 * Q: Also for evaluation, pick a sharp image, blur it and then try to sharpen it again. Compare the original and the sharpened image and report your observations.
@@ -68,11 +68,11 @@ Image source: <https://unsplash.com/photos/dqXiw7nCb9Q>
 
 ||`parkinglot.jpg`|
 |---|:---:|
-|Original|<img src="./imgs/parkinglot.jpg" width="500px" />|
-|Blurred|<img src="./imgs/parkinglot_blur.jpg" width="500px" />|
-|`alpha = 1`|<img src="./imgs/park_alpha_1.jpg" width="500px" />|
-|`alpha = 3`|<img src="./imgs/park_alpha_3.jpg" width="500px" />|
-|`alpha = 5`|<img src="./imgs/park_alpha_5.jpg" width="500px" />|
+|Original|<img src="./imgs/part2_1/parkinglot.jpg" width="500px" />|
+|Blurred|<img src="./imgs/part2_1/parkinglot_blur.jpg" width="500px" />|
+|`alpha = 1`|<img src="./imgs/part2_1/park_alpha_1.jpg" width="500px" />|
+|`alpha = 3`|<img src="./imgs/part2_1/park_alpha_3.jpg" width="500px" />|
+|`alpha = 5`|<img src="./imgs/part2_1/park_alpha_5.jpg" width="500px" />|
 
 A:
 Observations:

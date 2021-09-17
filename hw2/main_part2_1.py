@@ -4,7 +4,7 @@ import argparse
 
 from pathlib import Path
 
-DEBUG = True
+DEBUG = False
 
 def get2d_gaussian(ksize):
     g = cv2.getGaussianKernel(ksize, 0)
@@ -37,10 +37,10 @@ def main():
         p = Path(args.image)
         parent = p.parent
         name = str(p.stem + "_blur" + p.suffix)
-        blur_path = parent / name
+        blur_path = name
         blur = cv2.filter2D(img, cv2.CV_32F, G)
         img = np.clip(blur, 0, 255).astype(np.uint8)
-        cv2.imwrite("{}".format(str(blur_path)), img)
+        cv2.imwrite("{}".format(blur_path), img)
     alpha = args.alpha
 
 
