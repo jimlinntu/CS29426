@@ -10,7 +10,7 @@ from pathlib import Path
 DEBUG = True
 
 def freq_amplitude(img):
-    log_amplitude = np.log(np.abs(np.fft.fftshift(np.fft.fft2(img))))
+    log_amplitude = np.log(np.abs(np.fft.fftshift(np.fft.fft2(img))) + 1) # avoid log(0) problem
     return log_amplitude
 
 def get2d_gaussian(ksize, sigma):
@@ -36,6 +36,7 @@ def main():
     parser.add_argument("lp_k", type=int, help="low pass gaussian kernel size")
     parser.add_argument("hp_k", type=int, help="high pass laplacian kernel size")
     parser.add_argument("alpha", type=float, help="high pass laplacian's alpha")
+    parser.add_argument("--output_freq", default=False, action="store_true")
     args = parser.parse_args()
 
     img1_stem = Path(args.img1).stem
@@ -52,13 +53,14 @@ def main():
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
-    amp1 = freq_amplitude(img1)
-    amp1 = cv2.normalize(amp1, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    cv2.imwrite("{}_amp1.jpg".format(img1_stem), np.clip(amp1, 0, 255))
+    if args.output_freq:
+        amp1 = freq_amplitude(img1)
+        amp1 = cv2.normalize(amp1, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        cv2.imwrite("{}_amp1.jpg".format(img1_stem), np.clip(amp1, 0, 255))
 
-    amp2 = freq_amplitude(img2)
-    amp2 = cv2.normalize(amp2, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-    cv2.imwrite("{}_amp2.jpg".format(img2_stem), np.clip(amp2, 0, 255))
+        amp2 = freq_amplitude(img2)
+        amp2 = cv2.normalize(amp2, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        cv2.imwrite("{}_amp2.jpg".format(img2_stem), np.clip(amp2, 0, 255))
 
     # G1 = get_lowpass_kernel(51, 0)
     G1 = get_lowpass_kernel(args.lp_k, 0)
@@ -69,11 +71,26 @@ def main():
     cv2.imwrite("{}_G1.jpg".format(img1_stem), img1_G1)
 
     img2_G2 = cv2.filter2D(img2, cv2.CV_32F, G2)
+    # img * LoG will have negative numbers! And np.abs(img * LoG) will reflect its edge strength
+    img2_G2 = np.abs(img2_G2)
     img2_G2 = cv2.normalize(img2_G2, None, 0, 255, cv2.NORM_MINMAX)
     cv2.imwrite("{}_G2.jpg".format(img2_stem), img2_G2)
 
     hybrid = (img1_G1 + img2_G2) / 2
     cv2.imwrite("{}_hybrid.jpg".format(img1_stem + "_" + img2_stem), hybrid)
+
+    if args.output_freq:
+        img1_G1_amp = freq_amplitude(img1_G1)
+        img1_G1_amp = cv2.normalize(img1_G1_amp, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        cv2.imwrite("{}_G1_amp.jpg".format(img1_stem), img1_G1_amp)
+
+        img2_G2_amp = freq_amplitude(img2_G2)
+        img2_G2_amp = cv2.normalize(img2_G2_amp, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        cv2.imwrite("{}_G2_amp.jpg".format(img2_stem), img2_G2_amp)
+
+        hybrid_amp = freq_amplitude(hybrid)
+        hybrid_amp = cv2.normalize(hybrid_amp, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        cv2.imwrite("{}_hybrid_amp.jpg".format(img1_stem + "_" + img2_stem), hybrid_amp)
 
 if __name__ == "__main__":
     main()

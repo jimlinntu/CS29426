@@ -110,6 +110,95 @@ Observations:
 |<img src="./imgs/nike-align_amp1.jpg" width="300px"/>|<img src="./imgs/adidas-align_amp2.jpg" width="300px"/>|
 
 
-|Blurred Nike|High frequency Adidas|hybrid|
+||Blurred Nike|High frequency Adidas|hybrid|
+|---|---|---|---|
+|Spatial domain|<img src="./imgs/nike-align_G1.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid.jpg" width="500px"/>|
+|Frequency domain|<img src="./imgs/nike-align_G1_amp.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2_amp.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid_amp.jpg" width="500px"/>|
+
+Observations:
+
+1. The blurred image in frequency domain clearly gets rid of high frequency components
+2. You can notice the Adidas image that is filtered by Laplacian of Gaussian in frequency domain has larger white region because its lower frequency components are removed by the high-pass filter and high frequency components are strengthened.
+3. It is hard to align owl and parrot well because they stand in a slighly different posture.
+
+
+### Part 2.3: Gaussian and Laplacian Stacks & Part 2.4: Multiresolution Blending (a.k.a. the oraple!)
+
+* Orange and Apple
+
+|Orange|Gaussian stacks|Laplacian stacks|
 |---|---|---|
-|<img src="./imgs/nike-align_G1.jpg" width="500px"/>|<img src="./imgs/adidas-align_G2.jpg" width="500px"/>|<img src="./imgs/nike-align_adidas-align_hybrid.jpg" width="500px"/>|
+|`depth = 0`|<img src="./imgs/part2/orange_0.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_0.jpg" width="500px"/>|
+|`depth = 1`|<img src="./imgs/part2/orange_1.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_1.jpg" width="500px"/>|
+|`depth = 2`|<img src="./imgs/part2/orange_2.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_2.jpg" width="500px"/>|
+|`depth = 3`|<img src="./imgs/part2/orange_3.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_3.jpg" width="500px"/>|
+|`depth = 4`|<img src="./imgs/part2/orange_4.jpg" width="500px"/>|<img src="./imgs/part2/orange_lp_4.jpg" width="500px"/>|
+
+|Apple|Gaussian stacks|Laplacian stacks|
+|---|---|---|
+|`depth = 0`|<img src="./imgs/part2/apple_0.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_0.jpg" width="500px"/>|
+|`depth = 1`|<img src="./imgs/part2/apple_1.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_1.jpg" width="500px"/>|
+|`depth = 2`|<img src="./imgs/part2/apple_2.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_2.jpg" width="500px"/>|
+|`depth = 3`|<img src="./imgs/part2/apple_3.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_3.jpg" width="500px"/>|
+|`depth = 4`|<img src="./imgs/part2/apple_4.jpg" width="500px"/>|<img src="./imgs/part2/apple_lp_4.jpg" width="500px"/>|
+
+**NOTE**: The last level of Laplacian is the same as the Gaussian's last one. But I apply normalization. That is why they look different to each other.
+
+
+I implemented the algorithm according to the algorithm presented on the paper and the lecture slide:
+
+```
+Given: mask, left_img, right_img
+
+mask_stacks = generate mask's Gaussian stacks
+left_lp_stacks = generate left_img's Laplacian stacks
+right_lp_stacks = generate right_img's Laplacian stacks
+
+out = 0
+
+for i in range(n):
+    out += (mask_stacks[i] * left_lp_stacks[i]) +\
+           (1 - mask_stacks[i]) * right_lp_stacks[i]
+
+```
+
+The intermediate result (similar to Figure 3.42)
+
+<img src="./imgs/part2/apple_orange_process.jpg" width="700px"/>
+
+And the Orapple:
+
+
+<img src="./imgs/part2/apple_orange_out.jpg" width="300px"/>
+
+* [Car](https://unsplash.com/photos/_CiyeM2kvqs) + Me
+
+|Car|Me|Merged|
+|---|---|---|
+|<img src="./imgs/part2/car-crop.jpeg" width="300px"/>|<img src="./imgs/part2/Jim-crop.jpeg" width="300px"/>|<img src="./imgs/part2/car-crop_Jim-crop_out.jpg" width="300px"/>|
+
+* [Parrot](https://unsplash.com/photos/oxpqlSGDNxc) + [Alpaca](https://unsplash.com/photos/Hc9G7owDs1s)
+
+|Parrot|Alpaca|
+|:---:|:---:|
+|<img src="./imgs/part2/parrot-front-crop.jpeg" width="300px"/>|<img src="./imgs/part2/aplaca.jpeg" width="300px"/>|
+
+|Mask|Direct Paste|Merged|
+|---|---|---|
+|<img src="./imgs/part2/mask.jpeg" width="300px"/>|<img src="./imgs/part2/parrat-aplaca-direct.jpg" width="300px"/>|<img src="./imgs/part2/parrot-front-crop_aplaca_out.jpg" width="300px"/>|
+
+The intermediate result:
+
+<img src="./imgs/part2/parrot-front-crop_aplaca_process.jpg" width="1200px"/>
+
+Conclusion:
+* Choosing two objects to merge is super hard!
+* By Car + Me example, I find that merging objects that contain too different textures (metal and skin) is hard and you can still still easily tell this is not natural.
+* From Parrot + Alpaca, I find that stitching these two objects seem more realistic. I think perhaps that is because they have similar textures (they both have feathers).
+
+## Conclusion
+
+From this homework, I learn that:
+
+1. Human perception of whether a thing is natural or not is highly related to frequency domain!
+2. How to manipulate images in frequecy domain! Before this homework and related lectures, I don't know we can maninuplate image in such way!
