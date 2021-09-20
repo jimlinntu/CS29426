@@ -8,6 +8,10 @@ Email: tzu-chuan_lin@berkeley.edu
 
 Link: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj2/cs194-26-abu/tzu-chuan_lin_proj2/>
 
+## Environment
+* Environment creation: `conda create -n proj2 python=3.6`
+* Requirements: `pip install -r requirements.txt`
+
 ## Part 1 - Fun with Filters
 
 ### Part 1.1: Finite Difference Operator & Part 1.2: Derivative of Gaussian (DoG) Filter
