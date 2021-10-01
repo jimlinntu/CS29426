@@ -11,8 +11,6 @@ from scipy import interpolate
 
 import argparse
 
-DEBUG = True
-
 class CPSelect():
     # https://www.pyimagesearch.com/2015/03/09/capturing-mouse-click-events-with-python-and-opencv/
     def __init__(self, img_left, img_right,
@@ -285,7 +283,7 @@ def main():
 
     tri_indices = get_delaunay(mean_shape, img_left.shape[0], img_left.shape[1])
 
-    if DEBUG:
+    if args.write:
         delaunay_left = visualize_triangles(img_left, shape_left, tri_indices)
         cv2.imwrite("delaunay_left.png", delaunay_left)
         delaunay_right = visualize_triangles(img_right, shape_right, tri_indices)
@@ -296,7 +294,7 @@ def main():
         cv2.imwrite("left_marker.jpg", left_marker)
         cv2.imwrite("right_marker.jpg", right_marker)
 
-    if DEBUG:
+    if False:
         # test getAffineTransform
         A = np.array([1, 2])
         B = np.array([5, 3])

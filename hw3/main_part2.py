@@ -76,7 +76,6 @@ def crop(img, pts, target_h=350, target_w=240):
 
     return cropped, pts
 
-
 def interpolate(x1, x2, alpha):
     assert isinstance(x1, np.ndarray)
     assert isinstance(x2, np.ndarray)
@@ -89,6 +88,8 @@ def main():
     parser.add_argument("--save", type=str, default=None)
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--write", action="store_true", default=False)
+    parser.add_argument("--shape", action="store_true", default=False)
+    parser.add_argument("--add_corners", action="store_true", default=False)
     args = parser.parse_args()
 
     d = Path("./imm_face")
@@ -151,6 +152,12 @@ def main():
 
     my_shape = np.array(my_shape, np.int32)
 
+    if args.add_corners:
+        corners = np.array([[0, 0], [w-1, 0], [0, h-1], [w-1, h-1], [w//2, 0], [w-1, h//2], [w//2, h-1], [0, h//2]], dtype=np.int32)
+        my_shape = np.concatenate([my_shape, corners], axis=0)
+        tiled_corners = np.tile(corners.reshape(1, -1, 2), (len(shapes), 1, 1))
+        shapes = np.concatenate([shapes, tiled_corners], axis=1)
+
     # Compute the average shape
 
     mean_shape = np.mean(shapes, axis=0).astype(np.int32)
@@ -200,10 +207,13 @@ def main():
         cv2.imwrite("mean_img_my_shape.jpg", mean_img_my_shape)
 
     # Exaggerate between my face and the dane face
-    alphas = [2.0, 1.5, 1, 0.5]
+    alphas = [2.0, 1.5, 1, 0.8]
     cars = []
     for alpha in alphas:
-        new_shape = interpolate(my_shape, mean_shape, alpha)
+        if args.shape:
+            new_shape = interpolate(my_shape, mean_shape, alpha)
+        else:
+            new_shape = my_shape
         # avoid negative coordinates
         new_shape = np.clip(new_shape, [[0, 0]], [[w, h]])
 

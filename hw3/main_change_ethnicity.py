@@ -8,7 +8,7 @@ import random
 from main import CPSelect, get_delaunay, visualize_markers, visualize_triangles, cross_dissolve, warp
 
 def morph(
-        img, eth_left, eth_right,
+        img, face_mask, eth_left, eth_right,
         shape, eth_left_shape, eth_right_shape, tri_indices,
         shape_alpha, appear_alpha, h, w):
 
@@ -25,12 +25,46 @@ def morph(
 
     d_appear = warped_eth_right - warped_eth_left
 
+    # Warp the mask so that we can know where is the face located
+    mask = warp(face_mask.reshape(h, w, 1), shape, out_shape, tri_indices)
+
     out_img = warp(img, shape, out_shape, tri_indices, bg=img if shape_alpha == 0 else None)
 
-    out_img = out_img + appear_alpha * d_appear
+    # Only change the face region!
+    out_img = out_img + appear_alpha * (d_appear * mask)
     out_img = np.clip(out_img, 0, 255)
 
     return out_img
+
+def get_face_mask(face_shape, h, w, tri_indices):
+    assert isinstance(face_shape, np.ndarray)
+    assert face_shape.shape[1] == 2
+
+    face_shape = face_shape.astype(np.int32)
+    mask = np.zeros((h, w), dtype=np.int32)
+
+    contours = []
+    n = len(face_shape)
+    for tri in tri_indices:
+        a, b, c = tri
+
+        if any([a >= n, b >= n, c >= n]):
+            continue
+        a, b, c = face_shape[a], face_shape[b], face_shape[c]
+
+        contours.append([a, b, c])
+
+    contours = np.array(contours)
+    # Fill each triangle
+    cv2.drawContours(mask, contours, -1, 1, -1)
+    return mask
+
+def add_corners(shape, h, w):
+    assert isinstance(shape, np.ndarray)
+    assert shape.shape[1] == 2
+
+    corners = np.array([[0, 0], [w-1, 0], [0, h-1], [w-1, h-1], [w//2, 0], [w-1, h//2], [w//2, h-1], [0, h//2]], dtype=np.int32)
+    return np.concatenate([shape, corners], axis=0)
 
 def main():
     random.seed(115813)
@@ -40,6 +74,7 @@ def main():
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--save", type=str, default=None)
     parser.add_argument("--write", action="store_true", default=False)
+    parser.add_argument("--add_corners", action="store_true", default=False)
     args = parser.parse_args()
 
     img  = cv2.imread("./src_imgs/jim-crop-bell.jpeg")
@@ -57,7 +92,6 @@ def main():
 
         shapes = {"src": shape, "eth_left": eth_left_shape, "eth_right": eth_right_shape}
     else:
-        # TODO: load
         with open(args.load, "r") as f:
             shapes = json.load(f)
     if args.load is None and args.save is not None:
@@ -67,8 +101,14 @@ def main():
     h, w = img.shape[0:2]
     # Visualize the triangulation
     shape = np.array(shapes["src"], dtype=np.int32)
+    face_shape = shape.copy()
     eth_left_shape = np.array(shapes["eth_left"], dtype=np.int32)
     eth_right_shape = np.array(shapes["eth_right"], dtype=np.int32)
+
+    if args.add_corners:
+        shape = add_corners(shape, h, w)
+        eth_left_shape = add_corners(eth_left_shape, h, w)
+        eth_right_shape = add_corners(eth_right_shape, h, w)
 
     img_markers = visualize_markers(img, shape, marker=True, text=False, scale=0.4, markerSize=20)
     if args.write:
@@ -79,7 +119,7 @@ def main():
     if args.write:
         cv2.imwrite("img_tri.jpg", img_tri)
 
-    out = morph(img, eth_left, eth_right,
+    out = morph(img, get_face_mask(face_shape, h, w, tri_indices), eth_left, eth_right,
             shape, eth_left_shape, eth_right_shape, tri_indices,
             args.shape_alpha, args.appear_alpha, h, w)
 

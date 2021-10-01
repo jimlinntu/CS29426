@@ -1,5 +1,7 @@
 # Face Morphing
 
+Name: Tzu-Chuan Lin
+
 ## Defining Correspondences
 
 I chose to use OpenCV to implement the annotation process because `ginput` does not support opening two images simultaneously.
@@ -24,7 +26,6 @@ The triangulation result:
 |Image A| Mid-way face| Image B|
 |---|---|---|
 |<img src="./demo/jim-crop.jpg" width="602px"/>|<img src="./demo/midway.jpg" width="602px" />|<img src="./demo/george_small.jpeg" width="602px" />|
-
 
 
 ## The Morph Sequence
@@ -83,7 +84,7 @@ I also label my face in this way so that I can warp my face into the average sha
 
 |My face|My face with markers|
 |---|---|
-|<img src="./demo/jim-part2-crop.jpg" width="250px" />|<img src="./demo/my_img_w_markers.jpg" width="250px" />|
+|<img src="./demo/jim-part2-crop2.jpg" width="250px" />|<img src="./demo/my_img_w_markers.jpg" width="250px" />|
 
 |My face in average shape| The average face in my shape|
 |---|---|
@@ -98,13 +99,12 @@ using this formula: `result = alpha * my_face + (1-alpha) * Danish_mean_face` (b
 
 |alpha=2.0|alpha=1.5|alpha=1|alpha=0.5|
 |---|---|---|---|
-|<img src="./demo/car-2.0.jpg" width="250px" />|<img src="./demo/car-1.5.jpg" width="250px" />|<img src="./demo/car-1.jpg" width="250px" />|<img src="./demo/car-0.5.jpg" width="250px" />|
+|<img src="./demo/car-2.0.jpg" width="250px" />|<img src="./demo/car-1.5.jpg" width="250px" />|<img src="./demo/car-1.jpg" width="250px" />|<img src="./demo/car-0.8.jpg" width="250px" />|
 
 Observations:
-1. I think the reason why the exaggerated face is becoming smaller is my face occupies less region in the whole image.
 2. The exaggerated faces have brighter skins because the image of me has a better illumination environment.
 3. My eyebrows are **darker** than the average face and `alpha=2.0`'s eyebrows become even darker.
-4. It seems my eyes distance is **wider** than the average face because `alpha=2.0` has wider eye distance.
+4. It seems my eyes' distance is **wider** than the average face so `alpha=2.0` has wider eye distance.
 
 ## Bells and Whistles
 
@@ -118,7 +118,7 @@ And I choose these two images to change my ethnicity.
 |---|---|
 |<img src="./demo/averagetaiwanesemale.jpeg" width="300px" />|<img src="./demo/whiteamericanmale-adjust.jpeg" width="300px" />|
 
-* Change only apperance: `out = my_face + alpha * (tface - wface)`
+* Change only appearance: `out = my_face + alpha * (tface - wface)`
 
 |alpha=0|alpha=0.3|alpha=0.6|alpha=1.0|
 |---|---|---|---|
