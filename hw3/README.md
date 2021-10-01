@@ -8,6 +8,13 @@ Email: tzu-chuan_lin@berkeley.edu
 * Environment creation: `conda create -n proj3 python=3.6`
 * Requirements: `pip install -r requirements.txt`
 
+## Prepare the dataset
+1. Download <https://web.archive.org/web/20070613160541/http://www2.imm.dtu.dk/~aam/datasets/imm_face_db.zip>
+2. `mkdir ./imm_face/`
+3. `mv imm_face_db.zip ./imm_face/`
+4. `cd imm_face/`
+5. `unzip imm_face_db.zip`
+
 ## Defining Correspondences
 
 * `python main.py --save <the path you want to save the coorespondences>`
