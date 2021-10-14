@@ -2,7 +2,7 @@
 
 * Name: Tzu-Chuan Lin
 * SID: 3036360742
-* Website: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4/cs194-26-abu/>
+* Website: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/>
 * Email: tzu-chuan_lin@berkeley.edu
 
 ## Part 1
