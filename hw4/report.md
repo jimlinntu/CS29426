@@ -50,4 +50,4 @@ These are the pictures I have taken:
 Q: Whats the most important/coolest thing you have learned from this part?
 
 * I learned to derive the homography equation by hand. Previously I just directly used `cv2.findHomography`.
-* I also learned how to stitch two already warped images together (by checking using their origins information).
+* I also learned how to stitch two already warped images together (by using their origins information).

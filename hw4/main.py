@@ -191,8 +191,7 @@ def main():
     print("Rectifying the selected region into a bounding rectangle...")
     rectified = rectify(img, pts)
 
-    cv2.imwrite(args.out, rectified)
-
+    cv2.imwrite(args.out, rectified, [cv2.IMWRITE_JPEG_QUALITY, 60])
 
 
 if __name__ == "__main__":

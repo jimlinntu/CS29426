@@ -75,8 +75,8 @@ class Image:
         out = np.clip(out, 0, 255).astype(np.int32)
         return Image(out, (mask+mask2)[:, :, 0:1], merged_origin)
 
-    def write(self, path):
-        cv2.imwrite(path, self.img)
+    def write(self, path, jpg_quality):
+        cv2.imwrite(path, self.img, [cv2.IMWRITE_JPEG_QUALITY, jpg_quality])
 
 def get_dist_mask(mask):
     assert isinstance(mask, np.ndarray)
@@ -170,7 +170,7 @@ def main():
     # Merge merged and right
     merged_image = merged_image.merge(right_image)
 
-    merged_image.write(args.out)
+    merged_image.write(args.out, 60)
 
     return
 
