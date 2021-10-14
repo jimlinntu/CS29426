@@ -34,7 +34,6 @@ class Image:
         assert isinstance(image2, Image)
         # determine the new origin, the merged size
 
-
         merged_origin = np.minimum(self.origin, image2.origin)
         merged_bot_right = np.maximum(self.bot_right, image2.bot_right)
 
@@ -81,8 +80,14 @@ class Image:
 
 def get_dist_mask(mask):
     assert isinstance(mask, np.ndarray)
-    dst = cv2.distanceTransform(mask, cv2.DIST_L2, 3)
-    return dst
+    assert len(mask.shape) == 3
+    h, w = mask.shape[0:2]
+    hh, ww = h+2, w+2
+    # put 0 on the borders
+    padded_mask = np.zeros((hh, ww, 1), dtype=np.uint8)
+    padded_mask[1:-1, 1:-1, :] = mask
+    dst = cv2.distanceTransform(padded_mask, cv2.DIST_L2, 3)
+    return dst[1:-1, 1:-1, np.newaxis]
 
 def get_corners(img):
     h, w = img.shape[0:2]
@@ -105,8 +110,6 @@ def warp_toward_fixed_img(fixed_img, move_img, fixed_pts, move_pts):
     #       so this new corners might be out of bound (Ex. <0)
     new_corners = apply_H(corners, H)
 
-    O = np.array([[0, 0]])
-
     # (1, 2)
     new_origin = new_corners.min(axis=0, keepdims=True).astype(np.int32)
 
@@ -115,16 +118,17 @@ def warp_toward_fixed_img(fixed_img, move_img, fixed_pts, move_pts):
 
     new_w, new_h = get_hw_from_corners(new_corners)
     mask = np.ones((move_img.shape[0], move_img.shape[1], 1), dtype=np.int32)
+    mask = get_dist_mask(mask.astype(np.uint8)).astype(np.int32)
 
     warped = warpPerspective(move_img, inv_H, (new_w, new_h))
     warped = np.clip(warped.astype(np.int32), 0, 255)
 
     warped_mask = warpPerspective(mask, inv_H, (new_w, new_h))
-    warped_mask = (warped_mask >= 0.5).astype(np.int32)
 
-    if DEBUG:
+    if False:
         cv2.imwrite("warped.jpg", warped)
-        cv2.imwrite("warped_mask.jpg", warped_mask*255)
+        normalized_mask = cv2.normalize(warped_mask, None, 0, 255, cv2.NORM_MINMAX) 
+        cv2.imwrite("warped_mask.jpg", normalized_mask)
     return Image(warped, warped_mask, new_origin.reshape(2))
 
 def main():
@@ -132,6 +136,7 @@ def main():
     parser.add_argument("left", type=str)
     parser.add_argument("mid", type=str)
     parser.add_argument("right", type=str)
+    parser.add_argument("out", type=str)
 
     parser.add_argument("left_pts", type=str)
     parser.add_argument("mid_pts", type=str)
@@ -165,8 +170,7 @@ def main():
     # Merge merged and right
     merged_image = merged_image.merge(right_image)
 
-    import pdb; pdb.set_trace()
-    merged_image.write("out.jpg")
+    merged_image.write(args.out)
 
     return
 
