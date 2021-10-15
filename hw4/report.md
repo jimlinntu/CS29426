@@ -27,21 +27,37 @@ Rectified:
 
 These are the pictures I have taken:
 
-* Left:
+1. I-House's great hall:
 
 ![](./src_imgs/hall/left.jpg)
 
-* Middle:
-
 ![](./src_imgs/hall/mid.jpg)
-
-* Right:
 
 ![](./src_imgs/hall/right.jpg)
 
-* Combined:
+Combined:
 
 ![](./demo/ihouse_merged.jpg)
+
+* I-House's library
+
+![](./src_imgs/library/left.jpg)
+
+![](./src_imgs/library/mid.jpg)
+
+![](./src_imgs/library/right.jpg)
+
+![](./demo/lib_merged.jpg)
+
+* Lower sproul plaza
+
+![](./src_imgs/plaza/left.jpg)
+
+![](./src_imgs/plaza/mid.jpg)
+
+![](./src_imgs/plaza/right.jpg)
+
+![](./demo/plaza_merged.jpg)
 
 
 ### Conclusions

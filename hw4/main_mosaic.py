@@ -170,7 +170,7 @@ def main():
     # Merge merged and right
     merged_image = merged_image.merge(right_image)
 
-    merged_image.write(args.out, 60)
+    merged_image.write(args.out, 20)
 
     return
 
