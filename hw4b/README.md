@@ -37,3 +37,11 @@ python cylindrical.py ./src_imgs/cylinder/ 1 360_sproul.jpg
 ```
 python auto_stitch.py ./src_imgs/library/mid.jpg lib-rot-inv.jpg --imgs ./src_imgs/library/left-rot.jpg ./src_imgs/library/right.jpg --ori
 ```
+
+## Code Details for `auto_stitch.py`
+
+* Detecting corner features in an image: see `HarrisCorner()`
+* Implement Adaptive Non-Maximal Suppression: see `anms(...)`
+* Extracting a Feature Descriptor for each feature point: see `get_feature_descriptors(...)`
+* Matching these feature descriptors between two images: see `pair_corners(...)`
+* Use a robust method (RANSAC) to compute a homography: see `ransac_mask(...)`

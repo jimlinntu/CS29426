@@ -61,7 +61,7 @@ Sproul Plaza:
 **NOTE:** Markdown does not allow me to display too long image, so you might want to directly click into that to see the full image.
 
 However, you can notice some ghosting inside the image.
-I think it may be caused by inaccruate focal length or because I didn't use a tripod that cannot be rotated horizontally.
+I think it may be caused by inaccruate focal length or because I used a tripod that cannot be rotated horizontally.
 
 * Part 4B: Rotational invariance
 
@@ -72,3 +72,9 @@ I rotated one image like this:
 But I can still get the same result as the image above.
 
 (I do not provide the result here again because it is almost the same)
+
+
+## Conclusion (What have I learned)
+
+* I learn to implement automatic pairing a mosai! Next time when I take some photos I can directly use my code to stitch them together!
+* I learn to map an image to the cylinder coordinates and feel really cool that I can actually "see" the math I derive by hand!
