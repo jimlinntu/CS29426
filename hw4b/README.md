@@ -1,5 +1,10 @@
 # Proj4B: Feature Matching for Autostitching
 
+* Name: Tzu-Chuan Lin
+* SID: 3036360742
+* Website: <https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/>
+* Email: tzu-chuan_lin@berkeley.edu
+
 ## Environment
 * Python 3.6
 * `pip install -r requirements.txt`

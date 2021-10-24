@@ -1,5 +1,7 @@
 # Proj4B: Feature Matching for Autostitching
 
+Name: Tzu-Chuan Lin
+
 ## Detecting corner features in an image
 
 In my implementation, I just directly tranformed an image into gray scale and then performed the edge detection.
@@ -76,5 +78,5 @@ But I can still get the same result as the image above.
 
 ## Conclusion (What have I learned)
 
-* I learn to implement automatic pairing a mosai! Next time when I take some photos I can directly use my code to stitch them together!
+* I learn to implement automatic pairing images' interest points! Next time when I take some photos I can directly use my code to stitch them together!
 * I learn to map an image to the cylinder coordinates and feel really cool that I can actually "see" the math I derive by hand!
