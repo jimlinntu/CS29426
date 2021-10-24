@@ -229,12 +229,11 @@ def shift(img, dx, dy):
         img[y:y+new_h, x:x+new_w, :]
     return shifted
 
-# @nb.jit(nopython=True)
 def fast_compute_offset(
         f_pyramid, f_pyramid_mask,
         m_pyramid, m_pyramid_mask):
     # Pyramid search
-    first_search_range = (200, 600)
+    first_search_range = (0, 500)
     search_range = (-30, 30) # only allow right shift because the way I took the photo
     prev_dx, prev_dy  = 0, 0
 
@@ -255,9 +254,9 @@ def fast_compute_offset(
 
         if d == depth-1:
             # min_dy, max_dy = -1, 1
-            min_dy, max_dy = -0, 0
+            min_dy, max_dy = -10, 10
         else:
-            min_dy, max_dy = -0, 0
+            min_dy, max_dy = -2, 2
 
         for dy in range(min_dy, max_dy+1):
             for dx in range(min_dx, max_dx+1):
@@ -278,6 +277,8 @@ def fast_compute_offset(
                 # Compute SSD
                 intersection = (f_mask > 0) & (m_mask_shifted > 0)
                 count_inter = np.sum(intersection)
+                if count_inter == 0:
+                    continue
                 ssd = np.sum(np.square((f - m_shifted) * intersection)) / count_inter
 
                 if ssd < best_ssd:
@@ -300,7 +301,7 @@ def compute_offset(fixed_img, fixed_mask, move_img, move_mask):
     assert move_img.dtype == np.int32
 
     # Generate pyramids
-    depth = 3
+    depth = 4
     f_pyramid = get_pyramid(fixed_img, depth)
     f_pyramid_mask = get_pyramid(fixed_mask, depth)
 
@@ -381,7 +382,7 @@ class CylinderImage():
         out = np.clip(out, 0, 255).astype(np.int32)
         return out
 
-    def wrap_boundary(self, f, center_u):
+    def wrap_boundary(self, f, center_u, to_wrap):
         center_u = int(center_u)
         circum = int(round(f * math.radians(360)))
 
@@ -394,11 +395,14 @@ class CylinderImage():
         # Put everything with u >= cyl_circum to u - cyl_circum
 
         # (h, circum, 3)
-        out = self.cyl_img[:, 0:circum, :]
+        out = self.cyl_img[:, 0:circum, :].copy()
         mask = self.cyl_mask[:, 0:circum, :]
 
         wrap = self.cyl_img[:, circum:, :]
-        mask_wrap = self.cyl_mask[:, circum:, :]
+        mask_wrap = self.cyl_mask[:, circum:, :].copy()
+        if not to_wrap:
+            # Throw away boundaries
+            mask_wrap[:, :, :] = 0
 
         wrap_w = wrap.shape[1]
 
@@ -414,8 +418,8 @@ class CylinderImage():
         out = np.roll(out, du, axis=1)
         return out
 
-    def write(self, p, f, center_u):
-        wrap = self.wrap_boundary(f, center_u)
+    def write(self, p, f, center_u, wrap):
+        wrap = self.wrap_boundary(f, center_u, wrap)
         cv2.imwrite(p, wrap, [cv2.IMWRITE_JPEG_QUALITY, 20])
 
 def main():
@@ -423,6 +427,7 @@ def main():
     parser.add_argument("folder", type=str)
     parser.add_argument("center_idx", type=int)
     parser.add_argument("out", type=str)
+    parser.add_argument("--wrap", default=False, action="store_true")
     args = parser.parse_args()
 
     if False:
@@ -431,6 +436,9 @@ def main():
 
     imgs = load_jpg_imgs_from_folder(args.folder)
     assert 0 <= args.center_idx < len(imgs)
+
+    # Put this image to roughly in the middle of the list
+    imgs = np.roll(imgs, len(imgs)//2-args.center_idx, axis=0)
 
     pixel4a = GooglePixel4a()
 
@@ -493,8 +501,8 @@ def main():
         merged = merged.merge(cyl_images[i])
 
 
-    center_u = cyl_images[args.center_idx].center()[0]
-    merged.write(args.out, pixel4a.get_f_in_pixels(), center_u)
+    center_u = merged.center()[0]
+    merged.write(args.out, pixel4a.get_f_in_pixels(), center_u, args.wrap)
     return
 
 if __name__ == "__main__":
