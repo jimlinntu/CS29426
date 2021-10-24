@@ -1,6 +1,78 @@
-# Proj4B: Feature Matching for Autostitching
+# Proj4 A&B: [Auto]Stitching Photo Mosaics
 
 Name: Tzu-Chuan Lin
+
+## Proj4A: Image Warping and Mosaicing
+
+## Part 1
+
+### Image Rectification
+
+1. [Image 1](https://unsplash.com/photos/z11gbBo13ro)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/ronnie.jpeg)
+
+Rectified:
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/demo/ronnie-rectified.jpg)
+
+
+2. [Image 2](https://unsplash.com/photos/ptXFlLXuFME)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/sarah-khan.jpeg)
+
+Rectified:
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/demo/sarah-rectified.jpg)
+
+### Blend the images into a mosaic
+
+These are the pictures I have taken:
+
+1. I-House's great hall:
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/hall/left.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/hall/mid.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/hall/right.jpg)
+
+Combined:
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/demo/ihouse_merged.jpg)
+
+* I-House's library
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/library/left.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/library/mid.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/library/right.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/demo/lib_merged.jpg)
+
+* Lower sproul plaza
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/plaza/left.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/plaza/mid.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/src_imgs/plaza/right.jpg)
+
+![](https://inst.eecs.berkeley.edu/~cs194-26/fa21/upload/files/proj4A/cs194-26-abu/demo/plaza_merged.jpg)
+
+
+### Conclusions for Part4A
+
+
+Q: Whats the most important/coolest thing you have learned from this part?
+
+* I learned to derive the homography equation by hand. Previously I just directly used `cv2.findHomography`.
+* I also learned how to stitch two already warped images together (by using their origins information).
+
+---
+
+## Proj4B: Feature Matching for Autostitching
 
 ## Detecting corner features in an image
 
