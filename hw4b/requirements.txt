@@ -5,3 +5,4 @@ matplotlib
 Pillow
 scikit-image
 numba
+tqdm

@@ -45,3 +45,30 @@ In my implementation, I gave RANSAC 1000 iterations.
 |PartA (manual labeling)|PartB (automatic pairing)|
 |---|---|
 |<img src="./demo/plaza_merged.jpg" width="600px" />|<img src="./demo/plaza.jpg" width="600px" />|
+
+## Bells and Whistles
+
+* Part 4A: 360 Cylindrical panorama
+
+Detail: I derive the cylindrical mapping by hand and use the pyramid search + SSD to find the best alignment for each `(i-1, i)` pair in my images.
+
+See: [here](https://drive.google.com/drive/folders/1clK_1vjVdPHC_pYD4Lv5xABXUdHEB7PV?usp=sharing) for the original images.
+
+Sproul Plaza:
+
+<img src="https://drive.google.com/uc?export=view&id=1-Xf9o-rdxYFY4Dk2NiouvM1zJIWSOv9t" width="1000px" />
+
+**NOTE:** Markdown does not allow me to display too long image, so you might want to directly click into that to see the full image.
+
+However, you can notice some ghosting inside the image.
+I think it may be caused by inaccruate focal length or because I didn't use a tripod that cannot be rotated horizontally.
+
+* Part 4B: Rotational invariance
+
+I rotated one image like this:
+
+<img src="./src_imgs/library/left-rot.jpg" width="600px" />
+
+But I can still get the same result as the image above.
+
+(I do not provide the result here again because it is almost the same)

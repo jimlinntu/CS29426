@@ -134,8 +134,7 @@ def get_feature_descriptors(
             deg = np.rad2deg(theta)
             align_b = b.astype(np.int32)
             # rotate the bounding box
-            # rot_mat = cv2.getRotationMatrix2D(corner.astype(np.float32), -deg, 1.0)
-            rot_mat = cv2.getRotationMatrix2D(corner.astype(np.float32), 0, 1.0)
+            rot_mat = cv2.getRotationMatrix2D(corner.astype(np.float32), -deg, 1.0)
             # oriented normalized box
             b = np.concatenate([b, np.ones((4, 1))], axis=1).dot(rot_mat.T)
             b = b.astype(np.float32)
@@ -290,6 +289,7 @@ def main():
     parser.add_argument("out", type=str)
     parser.add_argument("--imgs", nargs="+", required=True)
     parser.add_argument("--anms", type=int, default=1000)
+    parser.add_argument("--ori", default=False, action="store_true")
     args = parser.parse_args()
 
     fixed = cv2.imread(args.fixed)
@@ -302,7 +302,7 @@ def main():
     corners, scores = hc.detect(fixed)
     before = corners
     corners, _ = anms(args.anms, corners, scores)
-    des = get_feature_descriptors(fixed, corners, orientation=False)
+    des = get_feature_descriptors(fixed, corners, orientation=args.ori)
 
     if False:
         canvas = fixed.copy()
@@ -331,7 +331,7 @@ def main():
         print("Stiching image...")
         cur_corners, scores = hc.detect(img)
         cur_corners, _ = anms(args.anms, cur_corners, scores)
-        cur_des = get_feature_descriptors(img, cur_corners, orientation=False)
+        cur_des = get_feature_descriptors(img, cur_corners, orientation=args.ori)
 
         print("Pairing the corners...")
         matches = pair_corners(des, cur_des)

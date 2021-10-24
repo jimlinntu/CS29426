@@ -23,3 +23,17 @@ python auto_stitch.py ./src_imgs/library/mid.jpg lib.jpg --imgs ./src_imgs/libra
 ```
 python auto_stitch.py ./src_imgs/plaza/mid.jpg plaza.jpg --imgs ./src_imgs/plaza/left.jpg ./src_imgs/plaza/right.jp
 ```
+
+4. (B&W) 360 Cylindrical Panorama
+
+Download the images to `./src_imgs/cylinder/` from [here](https://drive.google.com/drive/folders/1clK_1vjVdPHC_pYD4Lv5xABXUdHEB7PV?usp=sharing) and then run:
+
+```
+python cylindrical.py ./src_imgs/cylinder/ 1 360_sproul.jpg
+```
+
+5. (B&W) Rotational invariance descriptor
+
+```
+python auto_stitch.py ./src_imgs/library/mid.jpg lib-rot-inv.jpg --imgs ./src_imgs/library/left-rot.jpg ./src_imgs/library/right.jpg --ori
+```
