@@ -66,9 +66,13 @@ def load_folder(folder):
     return (imgs, keypoints), (val_imgs, val_keypoints), img_names
 
 def img2tensor(img):
-    img = img.astype(np.float32)
-    # (h, w, c) -> (c, h, w)
-    img = np.transpose(img, [2, 0, 1])
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    gray = cv2.resize(gray, (80, 60))
+
+    img = gray.astype(np.float32)
+
+    img = img[np.newaxis, :, :]
 
     # normalize to [-0.5, 0.5]
     img = img / 255. - 0.5
@@ -161,7 +165,7 @@ class Detector():
     def fit(self, trainset, validset, n_epochs=100):
         self.model.train()
 
-        train_loader = DataLoader(trainset, batch_size=1, shuffle=False, drop_last=True)
+        train_loader = DataLoader(trainset, batch_size=4, shuffle=True, drop_last=True)
         valid_loader = DataLoader(validset, batch_size=4, shuffle=False, drop_last=False)
 
         train_losses = []

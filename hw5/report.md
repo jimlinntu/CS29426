@@ -7,7 +7,7 @@ In this section, I trained the models using three different architectures and wi
 
 ||SimpleModel|SimpleModel+one more conv layer<br>(SimpleModelDeeper)|SimpleModel with 5x5 filters<br>(SimpleModelLargeKernel)|
 |---|---|---|---|
-||5 Conv(3x3) + 2 FC|6 Conv(3x3) + 2 FC|5 Conv(5x5) + 2FC|
+||3 Conv(3x3) + 2 FC|4 Conv(3x3) + 2 FC|3 Conv(5x5) + 2FC|
 
 * Ground truth nose tip keypoints
 
@@ -27,15 +27,15 @@ In this section, I trained the models using three different architectures and wi
 
 * Correct results (SimpleModel):
 
-<img src="./demo/val_out/20.jpg" width="600px" />
+<img src="./demo/val_out/29.jpg" width="600px" />
 
-<img src="./demo/val_out/24.jpg" width="600px" />
+<img src="./demo/val_out/37.jpg" width="600px" />
 
 * Wrong results (SimpleModel):
 
 <img src="./demo/val_out/17.jpg" width="600px" />
 
-<img src="./demo/val_out/32.jpg" width="600px" />
+<img src="./demo/val_out/15.jpg" width="600px" />
 
 Because I only trained `SimpleModel` by 192 images (without any augmentation),
 the prediction seems more suspectible to the rotation of the face or change of expression.

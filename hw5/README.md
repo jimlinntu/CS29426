@@ -21,5 +21,5 @@ First, please `mkdir params/`
     * `python main.py part1 SimpleModelDeeper --save params/deeper.pt --out ./val_out_deeper/`
 
 * SimpleModelLargeKernel:
-    * `python main.py part1 SimpleModelLargeKernel --save params/largekernel.pt --out val_out_largekernel/ --lr 0.0005`
+    * `python main.py part1 SimpleModelLargeKernel --save params/largekernel.pt --out val_out_largekernel/`
 
