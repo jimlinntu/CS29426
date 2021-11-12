@@ -18,7 +18,7 @@ from scipy.stats import truncnorm
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
         return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
-from model_part3 import Model, Model2
+from model_part3 import Model, Model2, Model_res34
 
 matplotlib.use('Agg')
 
@@ -98,17 +98,22 @@ class Info():
 
             img = cv2.imread(str(path))
 
-            plt.imshow(img[:, :, [2,1,0]])
             bbox = self.bboxes[i]
             bbox = self.scale_bbox(bbox, 1.5)
+
+            landmark = self.landmarks[i]
+            if not self.is_test:
+                img, landmark, bbox = random_flip(img, landmark, bbox)
+
+            plt.imshow(img[:, :, [2,1,0]])
             ax = plt.gca()
             ax.add_patch(Rectangle((bbox[1], bbox[0]), bbox[3], bbox[2],
                 linewidth=1, edgecolor="r", facecolor="none"))
 
             # Draw the landmark
-            landmark = self.landmarks[i]
-            for (x, y) in landmark:
+            for i, (x, y) in enumerate(landmark):
                 plt.plot(x, y, 'bo', markersize=1)
+                plt.text(x, y, str(i), color="red", fontsize=10)
 
             name_slash_to_underscore = name.replace("/", "_")
             plt.savefig(out_folder / "{}".format(name_slash_to_underscore))
@@ -118,8 +123,9 @@ class Info():
 
 def visualize_landmark(img, landmark, path):
     plt.imshow(img[:, :, [2,1,0]])
-    for (x, y) in landmark:
+    for i, (x, y) in enumerate(landmark):
         plt.plot(x, y, 'bo', markersize=1)
+        plt.text(x, y, str(i), color="red", fontsize=10)
     plt.savefig(path)
     plt.close()
     plt.cla()
@@ -144,6 +150,38 @@ def color_jitter(img):
     jittered = cj(tensor)
     # (C, H, W) -> (H, W, C)
     return np.transpose(jittered.numpy(), [1, 2, 0])
+
+def random_flip(img, landmark, bbox):
+    # (H, W, 3)
+    reindex = (
+        np.array([17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
+                  27, 26, 25, 24, 23, 22, 21, 20, 19, 18,
+                  28, 29, 30, 31,
+                  36, 35, 34, 33, 32,
+                  46, 45, 44, 43, 48, 47,
+                  40, 39, 38, 37, 42, 41,
+                  55, 54, 53, 52, 51, 50, 49,
+                  60, 59, 58, 57, 56,
+                  65, 64, 63, 62, 61,
+                  68, 67, 66], dtype=np.int32)-1
+
+    )
+
+    h, w = img.shape[0:2]
+    img = np.flip(img, axis=1)
+
+    bh, bw = bbox[2], bbox[3]
+    '''
+        *-----* <--- become the new top left after flipping
+        |     |
+        |     |
+        *-----*
+    '''
+    new_bbox = np.array([bbox[0], w-1-(bbox[1]+bw-1), bh, bw], dtype=np.int32)
+
+    landmark[:, 0] = w - 1 - landmark[:, 0]
+    landmark = landmark[reindex]
+    return img, landmark, new_bbox
 
 class KaggleDataset(torch.utils.data.Dataset):
     def __init__(self, info, type_, indices=None):
@@ -181,7 +219,7 @@ class KaggleDataset(torch.utils.data.Dataset):
 
         # (68, 3) dot (3, 2) -> (68, 2)
         landmark_restored = homo_landmark.dot(M_inv.T)
-        return landmark_restored.astype(np.int32)
+        return np.rint(landmark_restored).astype(np.int32)
 
     def __getitem__(self, idx):
         true_idx = self.indices[idx]
@@ -207,6 +245,8 @@ class KaggleDataset(torch.utils.data.Dataset):
         bbox = self.info.make_square(bbox)
 
         landmark = self.info.landmarks[true_idx]
+        if self.type_ == "train" and random.random() < 0.5:
+            img, landmark, bbox = random_flip(img, landmark, bbox)
 
         if self.type_ == "train":
             angle = self.Angle.rvs() # sample an angle
@@ -306,69 +346,92 @@ class KeyPointDetector():
 
     def fit(self, trainset, validset, graph_path):
 
-        tloader = DataLoader(trainset, batch_size=4, shuffle=True, drop_last=False)
-        vloader = DataLoader(validset, batch_size=8, shuffle=False, drop_last=False)
+        tloader = DataLoader(trainset, batch_size=32, shuffle=True, drop_last=False)
+        vloader = DataLoader(validset, batch_size=32, shuffle=False, drop_last=False)
 
         n_epochs = 100
 
         train_losses = []
         valid_losses = []
+        true_valid_losses = []
 
         best_valid_loss = float("inf")
+        best_true_valid_loss = float("inf")
         best_model = None
 
-        for epoch in tqdm(range(n_epochs)):
-            # Train
-            train_num_examples = 0
-            train_loss = 0.
+        try:
+            for epoch in tqdm(range(n_epochs)):
+                # Train
+                train_num_examples = 0
+                train_loss = 0.
 
-            self.model.train()
-            for batch in tloader:
-                img, landmark, M_inv = batch
+                self.model.train()
+                for batch in tloader:
+                    img, landmark, M_inv = batch
 
-                self.optimizer.zero_grad()
+                    self.optimizer.zero_grad()
 
-                img = img.cuda()
-                landmark = landmark.cuda()
-                pred_landmark = self.model(img)
-
-                loss = self.loss(landmark, pred_landmark)
-
-                (loss / img.shape[0]).backward()
-                self.optimizer.step()
-
-                train_num_examples += img.shape[0]
-                train_loss += loss.detach().cpu().numpy()
-                # break
-
-            train_losses.append(train_loss / train_num_examples)
-            # Valid
-            self.model.eval()
-            valid_num_examples = 0
-            valid_loss = 0.
-
-            for batch in vloader:
-                img, landmark, M_inv = batch
-                img = img.cuda()
-                landmark = landmark.cuda()
-
-                with torch.no_grad():
+                    img = img.cuda()
+                    landmark = landmark.cuda()
                     pred_landmark = self.model(img)
 
-                loss = self.loss(landmark, pred_landmark)
+                    loss = self.loss(landmark, pred_landmark)
 
-                valid_num_examples += img.shape[0]
-                valid_loss += loss.detach().cpu().numpy()
-                # break
+                    (loss / img.shape[0]).backward()
+                    self.optimizer.step()
 
-            valid_loss = valid_loss / valid_num_examples
-            valid_losses.append(valid_loss)
+                    train_num_examples += img.shape[0]
+                    train_loss += loss.detach().cpu().numpy()
+                    # break
 
-            # Save the model that performs the best on the validation set
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
-                best_model = copy.deepcopy(self.model)
-                print("[!] New better valid loss: {} at epoch: {}".format(best_valid_loss, epoch))
+                train_losses.append(train_loss / train_num_examples)
+                # Valid
+                self.model.eval()
+                valid_num_examples = 0
+                valid_loss = 0.
+                true_valid_loss = 0.
+
+                for batch in vloader:
+                    img, landmark, M_inv = batch
+                    img = img.cuda()
+                    landmark = landmark.cuda()
+
+                    with torch.no_grad():
+                        pred_landmark = self.model(img)
+
+                    loss = self.loss(landmark, pred_landmark)
+
+                    valid_num_examples += img.shape[0]
+                    valid_loss += loss.detach().cpu().numpy()
+
+                    landmark = landmark.cpu().numpy() * 224
+                    pred_landmark = pred_landmark.cpu().numpy() * 224
+                    M_inv = M_inv.cpu().numpy()
+
+                    for l, p, m in zip(landmark, pred_landmark, M_inv):
+                        l = KaggleDataset.restore_landmark(l, m)
+                        p = KaggleDataset.restore_landmark(p, m)
+                        # (68, 2) <-> (68, 2)
+                        true_valid_loss += np.sum(np.abs(l - p))
+                    # break
+
+                valid_loss = valid_loss / valid_num_examples
+                valid_losses.append(valid_loss)
+
+                true_valid_loss = true_valid_loss / (valid_num_examples * 68 * 2)
+                true_valid_losses.append(true_valid_loss)
+
+                # Save the model that performs the best on the validation set
+                # if valid_loss < best_valid_loss:
+                if true_valid_loss < best_true_valid_loss:
+                    best_true_valid_loss = true_valid_loss
+                    best_model = copy.deepcopy(self.model)
+                    print("[!] New better valid loss: {} at epoch: {}".format(best_true_valid_loss, epoch))
+        except KeyboardInterrupt:
+            l = min(len(train_losses), len(valid_losses))
+            # choose the shortest one
+            train_losses = train_losses[:l]
+            valid_losses = valid_losses[:l]
 
         # Visualize the train loss and valid losses
         self.visualize_train_val_losses(train_losses, valid_losses, graph_path)
@@ -376,8 +439,10 @@ class KeyPointDetector():
         # Use the best model
         self.model = best_model
 
-        print("[i] Training loss: {:f}".format(train_losses[-1]))
-        print("[i] Validation loss: {:f}".format(valid_losses[-1]))
+        if len(train_losses) > 0:
+            print("[i] Training loss: {:f}".format(train_losses[-1]))
+            print("[i] Validation loss: {:f}".format(valid_losses[-1]))
+        print("[i] True Validation loss: {:f}".format(best_true_valid_loss))
 
     def predict(self, testset, out_csv):
         assert isinstance(testset, KaggleDataset)
@@ -493,8 +558,9 @@ def main():
 
     if False:
         # Just for testing
-        train.info.is_test = True
-        detector.predict(train)
+        valid.info.is_test = True
+        detector.predict(valid, args.out_csv)
+        return
 
     if False:
         visualize_trunc_norm("./trunc_norm_his.jpg")
