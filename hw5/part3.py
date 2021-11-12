@@ -311,7 +311,7 @@ class KaggleDataset(torch.utils.data.Dataset):
 
         ones = np.ones((landmark.shape[0], 1))
         new_landmark = np.concatenate([landmark, ones], axis=1) @ (M.T)
-        return img, landmark
+        return img, new_landmark
 
 class KeyPointDetector():
     def __init__(self, lr):
