@@ -6,3 +6,4 @@ Pillow
 scikit-image
 numba
 tqdm
+segmentation-models-pytorch
