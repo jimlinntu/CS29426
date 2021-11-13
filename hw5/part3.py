@@ -161,9 +161,7 @@ def visualize_heatmap(heatmap, path):
     out = (heatmap*255).astype(np.uint8)
     cv2.imwrite(path, out)
 
-def color_jitter(img):
-    # https://pytorch.org/vision/stable/transforms.html?highlight=colorjitter
-    cj = transforms.ColorJitter(brightness=0.3, contrast=0.2, saturation=0.2)
+def color_jitter(img, cj):
     # (H, W, C) -> (C, H, W)
     transposed_img = np.transpose(img, [2, 0, 1])
     tensor = torch.from_numpy(transposed_img)
@@ -226,6 +224,9 @@ class KaggleDataset(torch.utils.data.Dataset):
         # Cache the images
         self.imgs = [None for i in range(len(self.indices))]
 
+        # https://pytorch.org/vision/stable/transforms.html?highlight=colorjitter
+        self.cj = transforms.ColorJitter(brightness=0.3, contrast=0.2, saturation=0.2)
+
     def __len__(self):
         return len(self.indices)
 
@@ -242,6 +243,22 @@ class KaggleDataset(torch.utils.data.Dataset):
         landmark_restored = homo_landmark.dot(M_inv.T)
         return np.rint(landmark_restored).astype(np.int32)
 
+    def pipeline(self, img):
+        assert isinstance(img, np.ndarray)
+        # Resize it to self.input_size
+        h, w = img.shape[0:2]
+        bbox = np.array([0, 0, h, w])
+        bbox = self.info.make_square(bbox)
+
+        cropped, M_inv = self.crop(img, bbox, None)
+        cropped_chw = np.transpose(cropped, [2, 0, 1])
+        img_tensor = torch.from_numpy(cropped_chw).float()
+        img_tensor = img_tensor[[2,1,0], :, :]
+        img_tensor = img_tensor / 255.
+        img_tensor = self.normalize(img_tensor)
+
+        return img_tensor, M_inv
+
     def __getitem__(self, idx):
         true_idx = self.indices[idx]
         path = self.info.get_path(true_idx)
@@ -250,7 +267,7 @@ class KaggleDataset(torch.utils.data.Dataset):
 
         # Augment
         if self.type_ == "train":
-            img = color_jitter(img)
+            img = color_jitter(img, self.cj)
         # During the training time, we want our model to learn
         # to predict on different scale
         scale = 1.5 # in test time, we always choose scale=1.5
@@ -262,7 +279,8 @@ class KaggleDataset(torch.utils.data.Dataset):
         bbox = self.info.scale_bbox(self.info.bboxes[true_idx], scale)
         bbox = self.info.make_square(bbox)
 
-        landmark = self.info.landmarks[true_idx]
+        # Crucial to copy!
+        landmark = copy.deepcopy(self.info.landmarks[true_idx])
         if self.type_ == "train" and random.random() < 0.5:
             # visualize_landmark(img, landmark, "vis.jpg")
             img, landmark, bbox = random_flip(img, landmark, bbox)
@@ -290,6 +308,8 @@ class KaggleDataset(torch.utils.data.Dataset):
                 keypoint_heatmaps = []
                 for kp in landmark:
                     heatmap = paste_gaussian(kp, self.input_size[0], self.input_size[1])
+                    if heatmap.sum() >= 0.0001:
+                        heatmap = heatmap / heatmap.sum() # normalize
                     keypoint_heatmaps.append(heatmap)
 
                 # (68, H, W)
@@ -350,7 +370,7 @@ class KeyPointDetector():
         self.heatmap = heatmap
         if heatmap:
             self.model = ModelUnet().cuda()
-            self.loss = torch.nn.BCEWithLogitsLoss(reduction="mean")
+            self.loss = torch.nn.KLDivLoss(reduction="sum")
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         else:
             self.model = Model2().cuda()
@@ -370,7 +390,10 @@ class KeyPointDetector():
         plt.plot(x, train_losses, "b", label="train losses")
         plt.plot(x, valid_losses, "g", label="valid losses")
         plt.xlabel("Epoch")
-        plt.ylabel("MAE Loss")
+        if self.heatmap:
+            plt.ylabel("KL Loss")
+        else:
+            plt.ylabel("MAE Loss")
         plt.legend()
         plt.savefig(path)
 
@@ -507,7 +530,8 @@ class KeyPointDetector():
         best_model = None
 
         try:
-            for epoch in tqdm(range(n_epochs)):
+            t = trange(n_epochs)
+            for epoch in t:
                 # Train
                 train_num_batches = 0
                 train_loss = 0.
@@ -515,20 +539,30 @@ class KeyPointDetector():
                 self.model.train()
                 for batch in tloader:
                     img, heatmap, M_inv = batch
+                    bsize = img.shape[0]
 
                     self.optimizer.zero_grad()
 
                     img = img.cuda()
+                    # (N, 68, H, W)
                     heatmap = heatmap.cuda()
                     pred_heatmap = self.model(img)
+                    # (N, 68, H, W) -> (N*68, H*W)
+                    pred_heatmap = pred_heatmap.reshape(bsize*68, -1)
+                    pred_heatmap = torch.nn.functional.log_softmax(pred_heatmap, dim=1)
 
-                    loss = self.loss(pred_heatmap, heatmap)
+                    heatmap = heatmap.reshape(bsize*68, -1)
+                    pred_heatmap = pred_heatmap.reshape(bsize*68, -1)
+
+                    # (N*68, H*W <--> (N*68, H*W))
+                    loss = self.loss(pred_heatmap, heatmap) / (bsize * 68)
 
                     loss.backward()
                     self.optimizer.step()
 
                     train_num_batches += 1
                     train_loss += loss.detach().cpu().numpy()
+                    # break
 
                 train_losses.append(train_loss / train_num_batches)
                 # Valid
@@ -538,16 +572,20 @@ class KeyPointDetector():
 
                 for batch in vloader:
                     img, heatmap, M_inv = batch
+                    bsize = img.shape[0]
                     img = img.cuda()
                     heatmap = heatmap.cuda()
 
                     with torch.no_grad():
                         pred_heatmap = self.model(img)
+                        pred_heatmap = pred_heatmap.reshape(bsize*68, -1)
+                        pred_heatmap = torch.nn.functional.log_softmax(pred_heatmap, dim=1)
 
-                    loss = self.loss(pred_heatmap, heatmap)
+                    loss = self.loss(pred_heatmap, heatmap.reshape(bsize*68, -1)) / (bsize * 68)
 
                     valid_num_batches += 1
                     valid_loss += loss.detach().cpu().numpy()
+                    # break
 
                 valid_loss = valid_loss / valid_num_batches
                 valid_losses.append(valid_loss)
@@ -557,6 +595,8 @@ class KeyPointDetector():
                     best_valid_loss = valid_loss
                     best_model = copy.deepcopy(self.model)
                     print("[!] New better valid loss: {} at epoch: {}".format(best_valid_loss, epoch))
+
+                t.set_postfix(train_loss=train_loss, valid_loss=valid_loss)
 
         except KeyboardInterrupt:
             l = min(len(train_losses), len(valid_losses))
@@ -658,7 +698,11 @@ class KeyPointDetector():
             img = img.cuda()
 
             with torch.no_grad():
-                pred_heatmap = torch.sigmoid(self.model(img)[0])
+                pred_heatmap = self.model(img)[0]
+                h, w = pred_heatmap.shape[1], pred_heatmap.shape[2]
+                pred_heatmap = pred_heatmap.reshape(68, h*w)
+                pred_heatmap = torch.nn.functional.softmax(pred_heatmap, dim=1)
+                pred_heatmap = pred_heatmap.reshape(68, h, w)
 
             pred_heatmap = pred_heatmap.cpu().numpy()
 
@@ -666,8 +710,8 @@ class KeyPointDetector():
             # Take the argument max for each heatmap
             shape = pred_heatmap.shape[1:3]
             pred_landmark = []
-            for i in range(68):
-                kp = np.unravel_index(pred_heatmap[i].argmax(), shape)
+            for j in range(68):
+                kp = np.unravel_index(pred_heatmap[j].argmax(), shape)
                 pred_landmark.append([kp[1], kp[0]])
 
             pred_landmark = np.array(pred_landmark)
@@ -679,7 +723,8 @@ class KeyPointDetector():
             if i in vis_indices:
                 img = cv2.imread(testset.info.get_path(testset.indices[i]))
                 visualize_landmark(img, pred_landmark, vis_folder / f"{i}.jpg")
-                visualize_heatmap(pred_heatmap[0], str(vis_folder / f"{i}_heatmap.jpg"))
+                visualize_heatmap(pred_heatmap[0] / pred_heatmap[0].max(),
+                        str(vis_folder / f"{i}_heatmap.jpg"))
 
         # Write to the csv
         with open(out_csv, "w") as f:
@@ -689,6 +734,22 @@ class KeyPointDetector():
                 flattened = landmark.flatten()
                 for j, num in enumerate(flattened):
                     f.write("{},{}\n".format(i*68*2 + j, num))
+
+    def predict_single(self, img, testset, path):
+        assert isinstance(img, np.ndarray)
+        self.model.eval()
+
+        img_tensor, M_inv = testset.pipeline(img)
+        img_tensor = torch.unsqueeze(img_tensor, dim=0)
+        img_tensor = img_tensor.cuda()
+
+        with torch.no_grad():
+            pred_landmark = self.model(img_tensor)
+        # (68, 2)
+        pred_landmark = pred_landmark[0].cpu().numpy() * testset.input_size[0]
+        pred_landmark = KaggleDataset.restore_landmark(pred_landmark, M_inv)
+
+        visualize_landmark(img, pred_landmark, path)
 
 def main():
     random.seed(678)
@@ -702,6 +763,10 @@ def main():
     parser.add_argument("--save", type=str, default=None)
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--heatmap", action="store_true", default=False)
+    parser.add_argument("--lr", type=float, default=0.001)
+
+    parser.add_argument("--collect", type=str, default=None)
+    parser.add_argument("--collect_out", type=str, default=None)
     args = parser.parse_args()
 
     folder = Path("./kaggle")
@@ -744,7 +809,8 @@ def main():
     test = KaggleDataset(test_info, "test", indices=None, heatmap=args.heatmap)
 
     # Fit the training set
-    detector = KeyPointDetector(0.001, args.heatmap)
+    print("[i] Lr: {}".format(args.lr))
+    detector = KeyPointDetector(args.lr, args.heatmap)
     if not args.load and args.save:
         detector.fit(train, valid, args.graph_path)
         detector.save(args.save)
@@ -767,6 +833,16 @@ def main():
 
     # Predict the testing set
     detector.predict(test, args.out_csv)
+
+    # Predict my collection
+    if args.collect and args.collect_out:
+        folder = Path(args.collect)
+        out_folder = Path(args.collect_out)
+        out_folder.mkdir(exist_ok=True)
+        for p in folder.iterdir():
+            if p.name.endswith("jpeg"):
+                img = cv2.imread(str(p))
+                detector.predict_single(img, test, out_folder / p.name)
 
 if __name__ == "__main__":
     main()

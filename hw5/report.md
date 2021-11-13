@@ -166,3 +166,114 @@ That's why for the first image it seems to predict a large face and for the seco
 
 
 ## Part 3: Train With Larger Dataset
+
+### Architecture of my models
+
+I directly use pretrained ResNet(18 and 34) as the starting point and replace its last `fc` layer with two newly initialized `fc` layers.
+
+(The same as [here](https://pytorch.org/vision/stable/_modules/torchvision/models/resnet.html))
+
+With `lr=0.001`.
+
+### Results
+
+NOTE: the `MAE` in my report is computed as follow:
+```
+Let (x_pred, y_pred), (x, y) be the normalized coordinates in [0, 1] x [0, 1],
+N be the number of training images
+
+Each training image's MAE = sum(|x - x_pred| + |y- y_pred| for 68 keypoints)
+
+Overall MAE = sum(MAE for each image)/ N
+```
+
+And the Kaggle's MAE is computed as this:
+```
+Let (x_pred, y_pred), (x, y) be the coordinates in the image
+N be the number of training images
+
+Each training image's MAE = sum(|x - x_pred| + |y- y_pred| for 68 keypoints)
+Overall MAE = sum(MAE for each image)/ (N * 68 * 2)
+```
+
+* Without any data augmentation:
+
+|Model|ResNet18 + 2FC|ResNet34 + 2FC|
+|---|---|---|
+|Train|1.548969|1.917886|
+|Valid|1.631135|1.777731|
+|Kaggle|7.73143|N/A|
+|Graph|<img src="./demo/loss_graph_model2_mae.jpg" width="600px" />|<img src="./demo/loss_res34.png" width="600px" />|
+
+* With data augmentation (color jittering, horizontal flipping)
+
+`lr=0.0005`
+
+|Model|ResNet18 + 2FC|
+|---|---|
+|Train||
+|Valid||
+|Kaggle||
+|Graph|<img src="./demo/loss_graph_model2_mae_w_jitter_flip.jpg" width="600px" />|
+
+Some sampled augmented images:
+
+|Before|After|
+|---|---|
+|<img src="./demo/t1.jpg" width="600px" />|<img src="./demo/t1_aug.jpg" width="600px" />|
+|<img src="./demo/t2.jpg" width="600px" />|<img src="./demo/t2_aug.jpg" width="600px" />|
+|<img src="./demo/t3.jpg" width="600px" />|<img src="./demo/t3_aug.jpg" width="600px" />|
+
+* Sampled testing images prediction (using `ResNet18`):
+
+<img src="./demo/part3_pred/117.jpg" width="600px" />
+
+<img src="./demo/part3_pred/177.jpg" width="600px" />
+
+<img src="./demo/part3_pred/672.jpg" width="600px" />
+
+* Prediction on images I collected.
+
+[1](https://unsplash.com/photos/rDEOVtE7vOs)
+
+<img src="./demo/collect_out/christopher-campbell-rDEOVtE7vOs-unsplash.jpeg" width="600px" />
+
+[2](https://unsplash.com/photos/B4TjXnI0Y2c)
+
+<img src="./demo/collect_out/houcine-ncib-B4TjXnI0Y2c-unsplash.jpeg" width="600px" />
+
+[3](https://unsplash.com/photos/8PMvB4VyVXA)
+
+<img src="./demo/collect_out/harishan-kobalasingam-8PMvB4VyVXA-unsplash.jpeg" width="600px" />
+
+I noticed that the first one seems to perform the best.
+But the second and the third are not so good.
+I guess there might be several reasons:
+
+1. The second image is tilted and I didn't train the model with rotational augmentation
+2. The third image's seems to be filtered heavily by the photographer and the head is not exactly in the middle. So the model chose to predict the result 68 keypoints more close to the image's middle.
+
+## B&W
+* Dense prediction + KL divergence loss:
+
+I use [this repository](https://github.com/qubvel/segmentation_models.pytorch) as the backbone of my fully convolutional network for keypoint detection.
+
+I place a gaussian for each keypoints, resulting a `(68, H, W)` heatmap for my model to learn.
+
+(Visualization of the guassian map)
+
+<img src="./demo/image_for_heatmap.jpg" width="600px" />
+
+<img src="./demo/heatmap1.jpg" width="600px" />
+
+<img src="./demo/heatmap2.jpg" width="600px" />
+
+Here are some examples predicted from the dense prediction + argmax to get the peak:
+
+
+And the loss graph:
+
+
+## Conclusions
+
+* I felt the most tricky part is the keypoint augmentation. I followed the image [here](https://ibug.doc.ic.ac.uk/resources/facial-point-annotations/). And I figured the reindexing by hand and visualized it to make sure I did it correctly.
