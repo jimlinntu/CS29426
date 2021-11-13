@@ -207,8 +207,6 @@ Overall MAE = sum(MAE for each image)/ (N * 68 * 2)
 
 * With data augmentation (color jittering, horizontal flipping)
 
-`lr=0.0005`
-
 |Model|ResNet18 + 2FC|
 |---|---|
 |Train||
@@ -260,7 +258,7 @@ I use [this repository](https://github.com/qubvel/segmentation_models.pytorch) a
 
 I place a gaussian for each keypoints, resulting a `(68, H, W)` heatmap for my model to learn.
 
-(Visualization of the guassian map)
+Visualization of the guassian map for this image (only show 2 keypoints):
 
 <img src="./demo/image_for_heatmap.jpg" width="600px" />
 

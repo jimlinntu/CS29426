@@ -564,7 +564,8 @@ class KeyPointDetector():
                     train_loss += loss.detach().cpu().numpy()
                     # break
 
-                train_losses.append(train_loss / train_num_batches)
+                train_loss = train_loss / train_num_batches
+                train_losses.append(train_loss)
                 # Valid
                 self.model.eval()
                 valid_num_batches = 0
