@@ -178,18 +178,19 @@ With `lr=0.001`.
 ### Results
 
 NOTE: the `MAE` in my report is computed as follow:
+
 ```
 Let (x_pred, y_pred), (x, y) be the normalized coordinates in [0, 1] x [0, 1],
 N be the number of training images
 
 Each training image's MAE = sum(|x - x_pred| + |y- y_pred| for 68 keypoints)
 
-Overall MAE = sum(MAE for each image)/ N
+Overall MAE = sum(MAE for each image) / N
 ```
 
 And the Kaggle's MAE is computed as this:
 ```
-Let (x_pred, y_pred), (x, y) be the coordinates in the image
+Let (x_pred, y_pred), (x, y) be the coordinates in the image [0, w] x [0, h]
 N be the number of training images
 
 Each training image's MAE = sum(|x - x_pred| + |y- y_pred| for 68 keypoints)
@@ -209,9 +210,10 @@ Overall MAE = sum(MAE for each image)/ (N * 68 * 2)
 
 |Model|ResNet18 + 2FC|
 |---|---|
-|Train||
-|Valid||
-|Kaggle||
+|Train|1.02|
+|Valid|1.11|
+|Valid (Kaggle metric)|5.86|
+|Kaggle|6.41695|
 |Graph|<img src="./demo/loss_graph_model2_mae_w_jitter_flip.jpg" width="600px" />|
 
 Some sampled augmented images:
@@ -255,6 +257,7 @@ I guess there might be several reasons:
 * Dense prediction + KL divergence loss:
 
 I use [this repository](https://github.com/qubvel/segmentation_models.pytorch) as the backbone of my fully convolutional network for keypoint detection.
+(using U-Net + ResNet).
 
 I place a gaussian for each keypoints, resulting a `(68, H, W)` heatmap for my model to learn.
 
@@ -271,6 +274,12 @@ Here are some examples predicted from the dense prediction + argmax to get the p
 
 And the loss graph:
 
+<img src="./demo/loss_graph_heat.jpg" width="600px" />
+
+Train loss: `0.027509`
+Valid loss: `0.088322`
+
+And I score `5.88478` on Kaggle.
 
 ## Conclusions
 

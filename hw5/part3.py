@@ -273,8 +273,8 @@ class KaggleDataset(torch.utils.data.Dataset):
         scale = 1.5 # in test time, we always choose scale=1.5
 
         # Augment
-        # if self.type_ == "train":
-        #     scale = self.Scale.rvs() # random scaling
+        if self.type_ == "train":
+            scale = self.Scale.rvs() # random scaling
 
         bbox = self.info.scale_bbox(self.info.bboxes[true_idx], scale)
         bbox = self.info.make_square(bbox)
@@ -285,14 +285,14 @@ class KaggleDataset(torch.utils.data.Dataset):
             # visualize_landmark(img, landmark, "vis.jpg")
             img, landmark, bbox = random_flip(img, landmark, bbox)
 
-        # if self.type_ == "train":
-        #     # angle = self.Angle.rvs() # sample an angle
-        #     angle = 0.
-        #     # Rotate w.r.t to the bbox center
-        #     tl = np.array([bbox[1], bbox[0]])
-        #     h, w = bbox[2], bbox[3]
-        #     center = np.array([tl[0] + w // 2, tl[1] + h // 2], dtype=np.float32)
-        #     img, landmark = self.rotate(img, landmark, center, angle)
+        if self.type_ == "train":
+            angle = self.Angle.rvs() # sample an angle
+            # angle = 0.
+            # Rotate w.r.t to the bbox center
+            tl = np.array([bbox[1], bbox[0]])
+            h, w = bbox[2], bbox[3]
+            center = np.array([tl[0] + w // 2, tl[1] + h // 2], dtype=np.float32)
+            img, landmark = self.rotate(img, landmark, center, angle)
 
         if not self.info.is_test:
             cropped, landmark, M_inv = self.crop(img, bbox, landmark)

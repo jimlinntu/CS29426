@@ -55,7 +55,7 @@ python part3.py ./out/out.csv ./loss_graph_model2_mae_w_jitter_flip.jpg --save .
 python part3.py ./out/out.csv ./loss_graph.jpg --load ./params/resnet_kp_model2_mae.pt --collect ./collect/ --collect_out ./collect_out/
 ```
 
-* Predict the testing set and the 3 photos I collected:
+* Predict the testing set and the 3 photos I collected (using `ResNet18 w augmentation`):
 ```
 python part3.py ./out/out.csv ./loss_graph_model2_mae_w_jitter_flip.jpg --load ./params/resnet_kp_model2_jitter_flip.pt --collect ./collect/ --collect_out ./collect_out/
 ```
